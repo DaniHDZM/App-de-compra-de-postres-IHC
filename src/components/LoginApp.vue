@@ -34,7 +34,7 @@ export default {
     };
   },
   mounted() {
-    // Si el email y la contraseña están en localStorage, los recupera y marca el checkbox
+    // Recupera el email y contraseña de localStorage si el usuario marcó "Recuérdame"
     if (localStorage.getItem('rememberMe') === 'true') {
       this.email = localStorage.getItem('email') || '';
       this.password = localStorage.getItem('password') || '';
@@ -46,13 +46,12 @@ export default {
       this.$router.push('/RegistrarApp');
     },
     handleLogin() {
-      // Guarda los datos en localStorage solo si rememberMe está activado
+      // Verifica si "Recuérdame" está marcado y guarda o limpia datos según corresponda
       if (this.rememberMe) {
         localStorage.setItem('email', this.email);
         localStorage.setItem('password', this.password);
         localStorage.setItem('rememberMe', true);
       } else {
-        // Limpia el localStorage si no está activado
         localStorage.removeItem('email');
         localStorage.removeItem('password');
         localStorage.setItem('rememberMe', false);

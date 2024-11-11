@@ -1,43 +1,79 @@
 <template>
-    <form >
+  <form @submit.prevent="handleRegister">
     <div class="container">
-    <h1>Crea tu perfil</h1>
-    <hr>
+      <h1>Crea tu perfil</h1>
+      <hr>
 
-    <label for="email"><b>Email</b></label>
-    <input type="email" placeholder="Coloca tu email" name="email" required>
-    
-    <label for="name"><b>Nombre</b></label>
-    <input type="text" placeholder="Coloca tu nombre" name="name" required>
+      <label for="email"><b>Email</b></label>
+      <input type="email" placeholder="Coloca tu email" name="email" v-model="email" required>
 
-    <label for="psw"><b>Contraseña</b></label>
-    <input type="password" placeholder="Coloca tu contraseña" name="psw" required>
+      <label for="name"><b>Nombre</b></label>
+      <input type="text" placeholder="Coloca tu nombre" name="name" v-model="name" required>
 
-    <label for="psw-repeat"><b>Confirmar contraseña</b></label>
-    <input type="password" placeholder="Confirmar contraseña" name="psw-repeat" required>
-    
+      <label for="psw"><b>Contraseña</b></label>
+      <input type="password" placeholder="Coloca tu contraseña" name="psw" v-model="password" required>
 
-    <div class="clearfix">
-      <button type="button" class="cancelbtn" @click="goToReSingIn">Ir a iniciar sesion</button>
-      <button type="submit" class="signupbtn" >Crear cuenta</button>
+      <label for="psw-repeat"><b>Confirmar contraseña</b></label>
+      <input type="password" placeholder="Confirmar contraseña" name="psw-repeat" v-model="passwordRepeat" required>
+
+      <!-- Mostrar mensaje de error si las contraseñas no coinciden -->
+      <p v-if="passwordError" class="error">{{ passwordError }}</p>
+
+      <label>
+        <input type="checkbox" v-model="rememberMe"> Recuérdame
+      </label>
+
+      <div class="clearfix">
+        <button type="button" class="cancelbtn" @click="goToReSingIn">Ir a iniciar sesión</button>
+        <button type="submit" class="signupbtn">Crear cuenta</button>
+      </div>
     </div>
-  </div>
-</form>
+  </form>
 </template>
-
 
 <script>
 export default {
   name: 'RegistrarApp',
   data() {
-
-},
+    return {
+      email: '',
+      name: '',
+      password: '',
+      passwordRepeat: '',
+      rememberMe: false, // Estado del checkbox
+      passwordError: '' // Mensaje de error si las contraseñas no coinciden
+    };
+  },
   methods: {
     goToReSingIn() {
       this.$router.push('/');
+    },
+    handleRegister() {
+      // Verificar que las contraseñas coincidan
+      if (this.password !== this.passwordRepeat) {
+        this.passwordError = "Las contraseñas no coinciden"; // Mostrar mensaje de error
+        return; // Salir de la función sin registrar
+      } else {
+        this.passwordError = ""; // Limpiar el mensaje de error si coinciden
+      }
+
+      // Guardar en localStorage si el checkbox "Recuérdame" está marcado
+      if (this.rememberMe) {
+        localStorage.setItem('email', this.email);
+        localStorage.setItem('password', this.password);
+        localStorage.setItem('rememberMe', true);
+      } else {
+        // Limpiar localStorage si el checkbox no está marcado
+        localStorage.removeItem('email');
+        localStorage.removeItem('password');
+        localStorage.setItem('rememberMe', false);
+      }
+
+      // Redirigir al usuario después del registro
+      this.$router.push('/Productos');
     }
   }
-}
+};
 </script>
 
 <style scoped>
@@ -62,6 +98,13 @@ input[type=text]:focus, input[type=password]:focus {
 hr {
   border: 1px solid #f1f1f1;
   margin-bottom: 25px;
+}
+
+/* Error message styling */
+.error {
+  color: red;
+  font-size: 14px;
+  margin-bottom: 10px;
 }
 
 /* Set a style for all buttons */
