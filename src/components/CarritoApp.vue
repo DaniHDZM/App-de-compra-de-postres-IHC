@@ -1,5 +1,5 @@
 <template>
-  <div class="shopping-cart">
+  <div class="CarritoApp">
     <h2>Carrito de Compras</h2>
     <table>
       <thead>
@@ -38,7 +38,7 @@
       <h3>Total de Productos: {{ totalQuantity }}</h3>
       <h3>Precio Total: {{ formatPrice(totalPrice) }}</h3>
     </div>
-    <router-link to="/checkout" class="checkout-button">Ir a Pagar</router-link>
+    <router-link to="/EnvioApp" class="checkout-button">Ir a Pagar</router-link>
   </div>
 </template>
 
@@ -49,11 +49,17 @@ export default {
       cartItems: [
         {
           name: "Pastel de Chocolate",
-          price: 150,
+          price: 50,
           quantity: 1,
           image: "ruta_a_la_imagen",
         },
-        { name: "Flan", price: 80, quantity: 2, image: "ruta_a_la_imagen" },
+        { name: "Flan", price: 30, quantity: 2, image: "ruta_a_la_imagen" },
+        {
+          name: "Galleta de chocolate",
+          price: 15,
+          quantity: 3,
+          image: "ruta_a_la_imagen",
+        },
       ],
     };
   },
