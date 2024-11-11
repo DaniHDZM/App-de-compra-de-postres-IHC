@@ -1,21 +1,19 @@
-
-
 <template>
   <div class="Bar">
     <h1>Inicia sesión</h1>
     <img src="../imagenes/CESARS BAKERY.png" alt="Avatar" class="avatar">
   </div>
-  <form>
+  <form @submit.prevent="handleLogin">
     <div class="container">
       <label for="uname"><b>Email</b></label>
-      <input type="email" placeholder="Enter Email" name="uname" required>
+      <input type="email" placeholder="Enter Email" name="uname" v-model="email" required>
 
       <label for="psw"><b>Password</b></label>
-      <input type="password" placeholder="Enter Password" name="psw" required>
+      <input type="password" placeholder="Enter Password" name="psw" v-model="password" required>
 
       <div class="clearfix">
         <button type="button" class="cancelbtn" @click="goToRegister">Ir a registrarse</button>
-        <button type="submit" class="signupbtn" @click="handleLogin">Iniciar Sesión</button>
+        <button type="submit" class="signupbtn">Iniciar Sesión</button>
       </div>
     </div>
   </form>
@@ -25,22 +23,40 @@
 export default {
   name: 'LoginApp',
   data() {
-
+    return {
+      email: '',
+      password: '',
+    };
   },
-
+  mounted() {
+    // Recupera el email del localStorage cuando el componente se monta
+    if (localStorage.getItem('email')) {
+      this.email = localStorage.getItem('email');
+    }
+    if (localStorage.getItem('password')) {
+      this.password = localStorage.getItem('password');
+    }
+  },
+  watch: {
+    email(newEmail) {
+      // Guarda el email en localStorage cuando cambia el valor
+      localStorage.setItem('email', newEmail);
+    },
+    password(newPassword) {
+      localStorage.setItem('password', newPassword)
+    }
+  },
   methods: {
     goToRegister() {
       this.$router.push('/RegistrarApp');
     },
     handleLogin() {
-      // Simulamos autenticación exitosa
+      // Simulación de autenticación exitosa
       this.$router.push('/productos');
     }
   }
-}
-
+};
 </script>
-
 
 <style scoped>
   /* Bordered form */
@@ -84,7 +100,6 @@ export default {
     float: left;
     width: 50%;
   }
-
 
   /* Center the avatar image inside this container */
   .Bar {
@@ -139,4 +154,3 @@ export default {
     }
   }
 </style>
-
