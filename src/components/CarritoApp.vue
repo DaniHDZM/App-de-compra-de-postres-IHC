@@ -39,6 +39,7 @@
       <h3>Precio Total: {{ formatPrice(totalPrice) }}</h3>
     </div>
     <router-link to="/EnvioApp" class="checkout-button">Ir a Pagar</router-link>
+    <button @click="goBack" class="back-button">Regresar</button>
   </div>
 </template>
 
@@ -48,14 +49,37 @@ export default {
     return {
       cartItems: [
         {
-          name: "Pastel de Chocolate",
+          name: "Brownie",
           price: 50,
           quantity: 1,
           image: "ruta_a_la_imagen",
         },
-        { name: "Flan", price: 30, quantity: 2, image: "ruta_a_la_imagen" },
         {
-          name: "Galleta de chocolate",
+          name: "Galletas con Chispas",
+          price: 30,
+          quantity: 2,
+          image: "ruta_a_la_imagen",
+        },
+        {
+          name: "Galletas de Avena",
+          price: 15,
+          quantity: 3,
+          image: "ruta_a_la_imagen",
+        },
+        {
+          name: "Cupcake de Chocolate",
+          price: 15,
+          quantity: 3,
+          image: "ruta_a_la_imagen",
+        },
+        {
+          name: "Pay de Queso",
+          price: 15,
+          quantity: 3,
+          image: "ruta_a_la_imagen",
+        },
+        {
+          name: "Rol de Canela",
           price: 15,
           quantity: 3,
           image: "ruta_a_la_imagen",
@@ -88,6 +112,9 @@ export default {
     },
     removeItem(index) {
       this.cartItems.splice(index, 1);
+    },
+    goBack() {
+      this.$router.back(); // Esto te llevará a la página anterior en la historia
     },
   },
 };
@@ -134,5 +161,16 @@ button {
 }
 .checkout-button:hover {
   background-color: #0056b3;
+}
+.back-button {
+  padding: 8px 16px;
+  background-color: red;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+.back-button:hover {
+  background-color: red;
 }
 </style>

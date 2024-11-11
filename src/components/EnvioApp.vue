@@ -29,6 +29,7 @@
 
     <!-- Botón para hacer pedido -->
     <button @click="makeOrder" class="order-button">Hacer Pedido</button>
+    <button @click="goBack" class="back-button">Regresar</button>
   </div>
 </template>
 
@@ -45,6 +46,9 @@ export default {
   methods: {
     makeOrder() {
       this.$router.push("/ConfirmacionApp"); // Redirige a la página de confirmación
+    },
+    goBack() {
+      this.$router.back(); // Esto te llevará a la página anterior en la historia
     },
   },
 };
@@ -95,5 +99,16 @@ label {
 }
 .order-button:hover {
   background-color: #0056b3;
+}
+.back-button {
+  padding: 8px 16px;
+  background-color: red;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+.back-button:hover {
+  background-color: red;
 }
 </style>
