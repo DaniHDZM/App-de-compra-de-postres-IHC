@@ -38,6 +38,7 @@
       <h3>Total de Productos: {{ totalQuantity }}</h3>
       <h3>Precio Total: {{ formatPrice(totalPrice) }}</h3>
     </div>
+    <router-link to="/checkout" class="checkout-button">Ir a Pagar</router-link>
   </div>
 </template>
 
@@ -114,5 +115,18 @@ td {
 button {
   margin: 0 5px;
   padding: 5px 10px;
+}
+.checkout-button {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  text-decoration: none;
+  text-align: center;
+  border-radius: 5px;
+}
+.checkout-button:hover {
+  background-color: #0056b3;
 }
 </style>
