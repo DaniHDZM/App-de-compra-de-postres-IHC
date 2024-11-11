@@ -4,8 +4,9 @@
     <div class="dropdowns">
       <!-- Dropdown para Facultad -->
       <label for="facultad">Facultad</label>
-      <select v-model="selectedFacultad" id="facultad">
-        <option value="" disabled>Selecciona una facultad</option>
+      <select v-model="selectedFacultad" id="facultad" class="styled-select">
+        <option value="">Ninguna</option>
+        <!-- Opción predeterminada -->
         <option
           v-for="facultad in facultades"
           :key="facultad"
@@ -17,8 +18,9 @@
 
       <!-- Dropdown para Sitio del Campus -->
       <label for="campus">Sitio del Campus</label>
-      <select v-model="selectedCampus" id="campus">
-        <option value="" disabled>Selecciona un sitio</option>
+      <select v-model="selectedCampus" id="campus" class="styled-select">
+        <option value="">Ninguna</option>
+        <!-- Opción predeterminada -->
         <option v-for="campus in campusSites" :key="campus" :value="campus">
           {{ campus }}
         </option>
@@ -34,11 +36,7 @@
 export default {
   data() {
     return {
-      facultades: [
-        "Facultad de Ciencias",
-        "Facultad de Telemática",
-        "Facultad de Administración",
-      ],
+      facultades: ["Facultad de Ciencias", "Facultad de Telemática"],
       campusSites: ["Servicios", "CEI"],
       selectedFacultad: "",
       selectedCampus: "",
@@ -46,11 +44,7 @@ export default {
   },
   methods: {
     makeOrder() {
-      if (this.selectedFacultad && this.selectedCampus) {
-        this.$router.push("/ConfirmacionApp"); // Redirige a la página de confirmación
-      } else {
-        alert("Por favor selecciona una facultad o un sitio del campus.");
-      }
+      this.$router.push("/ConfirmacionApp"); // Redirige a la página de confirmación
     },
   },
 };
@@ -71,11 +65,25 @@ h2 {
 label {
   display: block;
   margin: 10px 0 5px;
+  font-weight: bold;
 }
-select {
+.styled-select {
   width: 100%;
-  padding: 8px;
+  padding: 10px;
   margin-bottom: 20px;
+  border: 2px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  font-size: 16px;
+  color: #333;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+.styled-select:focus {
+  border-color: #007bff;
+  outline: none;
+  background-color: #fff;
 }
 .order-button {
   padding: 10px 20px;
