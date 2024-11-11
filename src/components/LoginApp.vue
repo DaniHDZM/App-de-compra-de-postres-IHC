@@ -11,6 +11,10 @@
       <label for="psw"><b>Password</b></label>
       <input type="password" placeholder="Enter Password" name="psw" v-model="password" required>
 
+      <label>
+        <input type="checkbox" v-model="rememberMe"> Recuérdame
+      </label>
+
       <div class="clearfix">
         <button type="button" class="cancelbtn" @click="goToRegister">Ir a registrarse</button>
         <button type="submit" class="signupbtn">Iniciar Sesión</button>
@@ -26,24 +30,15 @@ export default {
     return {
       email: '',
       password: '',
+      rememberMe: false, // Estado del checkbox
     };
   },
   mounted() {
-    // Recupera el email del localStorage cuando el componente se monta
-    if (localStorage.getItem('email')) {
-      this.email = localStorage.getItem('email');
-    }
-    if (localStorage.getItem('password')) {
-      this.password = localStorage.getItem('password');
-    }
-  },
-  watch: {
-    email(newEmail) {
-      // Guarda el email en localStorage cuando cambia el valor
-      localStorage.setItem('email', newEmail);
-    },
-    password(newPassword) {
-      localStorage.setItem('password', newPassword)
+    // Si el email y la contraseña están en localStorage, los recupera y marca el checkbox
+    if (localStorage.getItem('rememberMe') === 'true') {
+      this.email = localStorage.getItem('email') || '';
+      this.password = localStorage.getItem('password') || '';
+      this.rememberMe = true;
     }
   },
   methods: {
@@ -51,6 +46,18 @@ export default {
       this.$router.push('/RegistrarApp');
     },
     handleLogin() {
+      // Guarda los datos en localStorage solo si rememberMe está activado
+      if (this.rememberMe) {
+        localStorage.setItem('email', this.email);
+        localStorage.setItem('password', this.password);
+        localStorage.setItem('rememberMe', true);
+      } else {
+        // Limpia el localStorage si no está activado
+        localStorage.removeItem('email');
+        localStorage.removeItem('password');
+        localStorage.setItem('rememberMe', false);
+      }
+
       // Simulación de autenticación exitosa
       this.$router.push('/productos');
     }
