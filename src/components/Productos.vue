@@ -1,9 +1,14 @@
 <template>
   <div v-if="isAuthenticated">
+    <header :class="['navbar', { 'navbar-hidden': isNavbarHidden }]">
+      <h1 class="navbar-title">CÉSAR'S BAKERY</h1>
+      <img src="../imagenes/CESARS BAKERY.png" alt="Logo" class="navbar-logo" />
+      <button class="goToCartBtn" @click="goToCart">Ir al Carrito</button>
+    </header>
     <table>
       <thead>
         <tr>
-          <th>><h2>NOMBRE</h2></th>
+          <th><h2>NOMBRE</h2></th>
           <th><h2>DESCRIPCIÓN</h2></th>
           <th><h2>PRECIO</h2></th>
           <th><h2>IMAGEN</h2></th>
@@ -20,10 +25,8 @@
         </tr>
       </tbody>
     </table>
-    <button class="goToCartBtn" @click="goToCart"><h2>Ir al Carrito</h2></button>
   </div>
 </template>
-
 
 <script>
 export default {
@@ -32,11 +35,11 @@ export default {
     return {
       isAuthenticated: true,
       products: [
-        { id: 1, name: 'Brownie', description: 'Un clásico, chocolatoso con un toque de nuez. Ideal para los amantes del chocolate', price: 20.00, imageUrl: 'https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcRVP7B40YxYuFvkdmcKu8HdmYuZoYEt1qxupxc6MQQTIKU23zi9Yz_1kozKV9HNa2o1AwIopRYIE9PulVb1q2gqzcT7kTFJi_OQOPnhJZTL4ZBAi6KO6Vuo&usqp=CAE' },
+      { id: 1, name: 'Brownie', description: 'Un clásico, chocolatoso con un toque de nuez. Ideal para los amantes del chocolate', price: 20.00, imageUrl: 'https://th.bing.com/th/id/OIP.VBfpmhSapiPrlGt2PDlu6wHaGL?w=900&h=750&rs=1&pid=ImgDetMain' },
         { id: 2, name: 'Galletas con Chispas', description: 'Galletas suaves y crujientes con chispas de chocolate, perfectas para un antojo dulce en cualquier momento.', price: 15.00, imageUrl: 'https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcQ8P1Cc8rE8xt5RnaStEUNNWF7de1-eIpMaZwpz5ytPIkamaV6G8I9FiSlP1Y1iK64CQu4mJhha9YMzaCM-Z-Tf19NQnqMe77RZK3Lz9F0GEB8VEnpiL3zu&usqp=CAE' },
         { id: 3, name: 'Galletas de Avena', description: 'Una opción deliciosa y más saludable, con avena y un toque de canela. Perfectas para una energía extra.', price: 15.00, imageUrl: 'https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcSzBv-YHDEFUIH_02Jwi-0bS5Sf9CvmgER1NA6vUkEhnX01P0rHR6wlWh7HlzMmXpaUO67LCTXk8AbMaW0Asv_5G5SEDhBw4eCdjG3bwGE&usqp=CAE ' },
         { id: 4, name: 'Cupcake de chocolate', description: 'Cupcakes esponjosos en sabor de chocolate, decorados con un toque de crema. Dulce y divertido', price: 18.00, imageUrl: 'https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcSK3FyG6ZS307Kn0nyJhoRdWgtdoaLcY-KgoRqeOsWdDoORj7G8nPj4AH1vQEQQJN_BzFgl6h5wU2QVjzPaN8fewkJvX65Ny2ce41Fw_4VITSnCs2lXTEOlBqU&usqp=CAE ' },
-        { id: 5, name: 'Pay de Queso', description: 'Suave y cremoso cheesecake con una base de galleta. Disponible en sabores tradicionales como fresa y mango.', price: 25.00, imageUrl: 'https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcT2v2C9GgnByTP7XQwqd-5F8Jqt9Mv4dBXQCFLeEqDN1CpC3kpS9YxDxTi4da_S_na3QaMOXdHeU06rfc2pmaFhRYcj_1pxvYpCEIh4OXEep5jTwl1TXzRjXQ&usqp=CAE ' },
+        { id: 5, name: 'Pay de Queso', description: 'Suave y cremoso cheesecake con una base de galleta. Disponible en sabores tradicionales como fresa y mango.', price: 25.00, imageUrl: 'https://cdn.shopify.com/s/files/1/0360/9813/products/Pay_de_Queso_2019_Rebanada_copy_grande.jpg?v=1573082909' },
         { id: 5, name: 'Rol de canela', description: 'Suave y esponjoso rol de canela cubierto con un glaseado dulce. Un favorito reconfortante para cualquier momento.', price: 45.00, imageUrl: 'https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcRgpEE_ROxEGTKRdiTyhXxRrt-nVjtFy91H9WhjM3VlbHyHuCMCNasWxm_zalFzBvtnmiBqS4LMEuISQZW5Cs6lyKJ6lxN0-dXdcAoSi5HfPT17EPNynWW1UQ&usqp=CAE ' }
       ],
       cart: []
@@ -44,23 +47,18 @@ export default {
   },
   methods: {
     addToCart(product) {
-      // Verifica si el producto ya está en el carrito
       const existingProduct = this.cart.find(item => item.id === product.id);
       if (existingProduct) {
-        existingProduct.quantity += 1; // Aumenta la cantidad si ya existe
+        existingProduct.quantity += 1;
       } else {
-        // Agrega el producto al carrito con cantidad 1 si no existe
         this.cart.push({ ...product, quantity: 1 });
       }
-
-      // Guarda el carrito actualizado en el localStorage
       localStorage.setItem('cart', JSON.stringify(this.cart));
     },
     goToCart() {
       this.$router.push('/carrito');
     },
     loadCartFromLocalStorage() {
-      // Carga el carrito del localStorage si existe
       const storedCart = localStorage.getItem('cart');
       if (storedCart) {
         this.cart = JSON.parse(storedCart);
@@ -68,13 +66,48 @@ export default {
     }
   },
   mounted() {
-    // Carga el carrito desde el localStorage al iniciar el componente
     this.loadCartFromLocalStorage();
-  }
+  },
 };
 </script>
 
 <style scoped>
+/* Estilos de la navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  position: relative;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-right: auto; /* Título alineado a la izquierda */
+}
+
+.navbar-logo {
+  width: 150px; /* Tamaño de la imagen */
+  height: 150px;
+  border-radius: 50%;
+  margin: 0 auto; /* Centra la imagen en la navbar */
+}
+
+.goToCartBtn {
+  background-color: #04AA6D;
+  color: white;
+  padding: 10px 20px;
+  cursor: pointer;
+  border: none;
+  font-size: 16px;
+}
+
+/* Estilos de tabla y otros */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -102,25 +135,10 @@ button {
   color: white;
 }
 
-.addBtn:hover {
+.addBtn:hover, .goToCartBtn:hover {
   opacity: 0.8;
 }
 
-.goToCartBtn {
-  background-color: #4CAF50;
-  color: white;
-  padding: 10px 20px;
-  margin-top: 10px;
-  float: right;
-  width: 250px;
-  height: 100px;
-}
-
-.goToCartBtn:hover {
-  opacity: 0.8;
-}
-
-/* Estilos de imagen */
 .product-image {
   width: 250px;
   height: 250px;
@@ -128,26 +146,17 @@ button {
   border-radius: 5px;
 }
 
-h1 {
-  font-size: 15px;
-}
-h2 {
+h1, h2 {
   font-size: 15px;
 }
 
 @keyframes clickShrink {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(0.95); /* Reduce el tamaño a 95% */
-  }
-  100% {
-    transform: scale(1);
-  }
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
 }
 
 .addBtn:active {
-  animation: clickShrink 0.2s ease-in-out; /* Duración y tipo de animación */
+  animation: clickShrink 0.2s ease-in-out;
 }
 </style>
