@@ -24,6 +24,7 @@
   </div>
 </template>
 
+
 <script>
 export default {
   name: 'ProductosView',
@@ -31,7 +32,7 @@ export default {
     return {
       isAuthenticated: true,
       products: [
-        { id: 1, name: ' Brownie', description: 'Un clásico, chocolatoso con un toque de nuez. Ideal para los amantes del chocolate', price: 20.00, imageUrl: 'https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcRVP7B40YxYuFvkdmcKu8HdmYuZoYEt1qxupxc6MQQTIKU23zi9Yz_1kozKV9HNa2o1AwIopRYIE9PulVb1q2gqzcT7kTFJi_OQOPnhJZTL4ZBAi6KO6Vuo&usqp=CAE' },
+        { id: 1, name: 'Brownie', description: 'Un clásico, chocolatoso con un toque de nuez. Ideal para los amantes del chocolate', price: 20.00, imageUrl: 'https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcRVP7B40YxYuFvkdmcKu8HdmYuZoYEt1qxupxc6MQQTIKU23zi9Yz_1kozKV9HNa2o1AwIopRYIE9PulVb1q2gqzcT7kTFJi_OQOPnhJZTL4ZBAi6KO6Vuo&usqp=CAE' },
         { id: 2, name: 'Galletas con Chispas', description: 'Galletas suaves y crujientes con chispas de chocolate, perfectas para un antojo dulce en cualquier momento.', price: 15.00, imageUrl: 'https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcQ8P1Cc8rE8xt5RnaStEUNNWF7de1-eIpMaZwpz5ytPIkamaV6G8I9FiSlP1Y1iK64CQu4mJhha9YMzaCM-Z-Tf19NQnqMe77RZK3Lz9F0GEB8VEnpiL3zu&usqp=CAE' },
         { id: 3, name: 'Galletas de Avena', description: 'Una opción deliciosa y más saludable, con avena y un toque de canela. Perfectas para una energía extra.', price: 15.00, imageUrl: 'https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcSzBv-YHDEFUIH_02Jwi-0bS5Sf9CvmgER1NA6vUkEhnX01P0rHR6wlWh7HlzMmXpaUO67LCTXk8AbMaW0Asv_5G5SEDhBw4eCdjG3bwGE&usqp=CAE ' },
         { id: 4, name: 'Cupcake de chocolate', description: 'Cupcakes esponjosos en sabor de chocolate, decorados con un toque de crema. Dulce y divertido', price: 18.00, imageUrl: 'https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcSK3FyG6ZS307Kn0nyJhoRdWgtdoaLcY-KgoRqeOsWdDoORj7G8nPj4AH1vQEQQJN_BzFgl6h5wU2QVjzPaN8fewkJvX65Ny2ce41Fw_4VITSnCs2lXTEOlBqU&usqp=CAE ' },
@@ -43,11 +44,32 @@ export default {
   },
   methods: {
     addToCart(product) {
-      this.cart.push(product);
-    },    
+      // Verifica si el producto ya está en el carrito
+      const existingProduct = this.cart.find(item => item.id === product.id);
+      if (existingProduct) {
+        existingProduct.quantity += 1; // Aumenta la cantidad si ya existe
+      } else {
+        // Agrega el producto al carrito con cantidad 1 si no existe
+        this.cart.push({ ...product, quantity: 1 });
+      }
+
+      // Guarda el carrito actualizado en el localStorage
+      localStorage.setItem('cart', JSON.stringify(this.cart));
+    },
     goToCart() {
       this.$router.push('/carrito');
+    },
+    loadCartFromLocalStorage() {
+      // Carga el carrito del localStorage si existe
+      const storedCart = localStorage.getItem('cart');
+      if (storedCart) {
+        this.cart = JSON.parse(storedCart);
+      }
     }
+  },
+  mounted() {
+    // Carga el carrito desde el localStorage al iniciar el componente
+    this.loadCartFromLocalStorage();
   }
 };
 </script>

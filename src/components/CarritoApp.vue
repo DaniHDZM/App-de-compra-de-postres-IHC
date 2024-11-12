@@ -15,7 +15,7 @@
         <tr v-for="(item, index) in cartItems" :key="index">
           <td>
             <img
-              :src="item.image"
+              :src="item.imageUrl"
               alt="Foto de producto"
               class="product-image"
             />
@@ -47,44 +47,7 @@
 export default {
   data() {
     return {
-      cartItems: [
-        {
-          name: "Brownie",
-          price: 50,
-          quantity: 1,
-          image: "ruta_a_la_imagen",
-        },
-        {
-          name: "Galletas con Chispas",
-          price: 30,
-          quantity: 2,
-          image: "ruta_a_la_imagen",
-        },
-        {
-          name: "Galletas de Avena",
-          price: 15,
-          quantity: 3,
-          image: "ruta_a_la_imagen",
-        },
-        {
-          name: "Cupcake de Chocolate",
-          price: 15,
-          quantity: 3,
-          image: "ruta_a_la_imagen",
-        },
-        {
-          name: "Pay de Queso",
-          price: 15,
-          quantity: 3,
-          image: "ruta_a_la_imagen",
-        },
-        {
-          name: "Rol de Canela",
-          price: 15,
-          quantity: 3,
-          image: "ruta_a_la_imagen",
-        },
-      ],
+      cartItems: [] // Inicialmente vacío, se llenará con los datos de localStorage
     };
   },
   computed: {
@@ -104,21 +67,39 @@ export default {
     },
     increaseQuantity(item) {
       item.quantity += 1;
+      this.updateLocalStorage(); // Actualiza el localStorage cuando se cambia la cantidad
     },
     decreaseQuantity(item) {
       if (item.quantity > 1) {
         item.quantity -= 1;
+        this.updateLocalStorage(); // Actualiza el localStorage cuando se cambia la cantidad
       }
     },
     removeItem(index) {
       this.cartItems.splice(index, 1);
+      this.updateLocalStorage(); // Actualiza el localStorage después de eliminar un producto
+    },
+    updateLocalStorage() {
+      // Guarda el carrito actualizado en localStorage
+      localStorage.setItem('cart', JSON.stringify(this.cartItems));
     },
     goBack() {
       this.$router.back(); // Esto te llevará a la página anterior en la historia
     },
+    loadCartFromLocalStorage() {
+      const storedCart = localStorage.getItem('cart');
+      if (storedCart) {
+        this.cartItems = JSON.parse(storedCart);
+      }
+    }
   },
+  mounted() {
+    // Carga el carrito desde el localStorage al montar el componente
+    this.loadCartFromLocalStorage();
+  }
 };
 </script>
+
 
 <style scoped>
 .shopping-cart {
