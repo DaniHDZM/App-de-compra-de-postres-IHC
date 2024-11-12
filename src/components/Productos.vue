@@ -134,4 +134,20 @@ h1 {
 h2 {
   font-size: 15px;
 }
+
+@keyframes clickShrink {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.95); /* Reduce el tamaño a 95% */
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.addBtn:active {
+  animation: clickShrink 0.2s ease-in-out; /* Duración y tipo de animación */
+}
 </style>
