@@ -1,6 +1,5 @@
 <template>
   <div class="CarritoApp">
-    
     <header :class="['navbar', { 'navbar-hidden': isNavbarHidden }]">
       <h1 class="navbar-title">CÉSAR'S BAKERY</h1>
       <img src="../imagenes/CESARS BAKERY.png" alt="Logo" class="navbar-logo" />
@@ -19,14 +18,18 @@
       <tbody>
         <tr v-for="(item, index) in cartItems" :key="index" class="product-row">
           <th class="product-image-container">
-            <img :src="item.imageUrl" alt="Foto de producto" class="product-image" />
+            <img
+              :src="item.imageUrl"
+              alt="Foto de producto"
+              class="product-image"
+            />
             <span>{{ item.name }}</span>
           </th>
-          
+
           <td class="controls-row">
             <span class="product-price">{{ formatPrice(item.price) }}</span>
           </td>
-            <td>
+          <td>
             <span class="product-quantity">
               <button @click="decreaseQuantity(item)">-</button>
               <span>{{ item.quantity }}</span>
@@ -34,9 +37,11 @@
             </span>
           </td>
           <td>
-            <span class="product-total">{{ formatPrice(item.price * item.quantity) }}</span>
+            <span class="product-total">{{
+              formatPrice(item.price * item.quantity)
+            }}</span>
           </td>
-          
+
           <td class="product-remove">
             <button @click="removeItem(index)">Eliminar</button>
           </td>
@@ -81,7 +86,9 @@
 
       <div class="button-container">
         <button @click="goBack" class="back-button">Regresar</button>
-        <router-link to="/EnvioApp" class="checkout-button">Ir a envío</router-link>
+        <button @click="goToShipping" class="checkout-button">
+          Ir a envío
+        </button>
       </div>
     </div>
   </div>
@@ -107,6 +114,13 @@ export default {
     },
   },
   methods: {
+    goToShipping() {
+      if (!this.selectedPayment) {
+        alert("Por favor selecciona un método de pago antes de continuar.");
+        return;
+      }
+      this.$router.push("/EnvioApp");
+    },
     formatPrice(price) {
       return `$${price.toFixed(2)}`;
     },
@@ -181,19 +195,59 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-th,
+th {
+  background-color: #333;
+  color: white;
+  padding: 12px;
+  font-weight: bold;
+  font-size: 1em;
+}
+
 td {
   padding: 12px;
-  border: 1px solid #ddd;
-  text-align: center;
+  border-bottom: 1px solid #ddd;
+  font-size: 0.95em;
 }
 
 .product-image {
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 5px;
   margin-right: 10px;
+}
+
+.product-quantity button {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  border: none;
+  color: #333;
+  font-weight: bold;
+}
+
+.product-quantity span {
+  font-weight: bold;
+}
+
+.product-remove button {
+  background-color: #ff4c4c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+
+.product-remove button:hover {
+  background-color: #ff2c2c;
 }
 
 .total-section {
@@ -283,7 +337,6 @@ button {
 .back-button:hover {
   background-color: #cd1c18;
 }
-
 
 /* Media query para pantallas de 500px o menos */
 @media (max-width: 500px) {
