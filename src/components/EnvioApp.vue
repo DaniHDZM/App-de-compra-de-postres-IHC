@@ -8,7 +8,7 @@
 
     <div class="dropdowns">
       <!-- Dropdown para Facultad -->
-      <label for="facultad">Facultad</label>
+      <label for="facultad">Sitio</label>
       <select v-model="selectedFacultad" id="facultad" class="styled-select">
         <option value="">Ninguna</option>
         <!-- Opción predeterminada -->
@@ -18,16 +18,6 @@
           :value="facultad"
         >
           {{ facultad }}
-        </option>
-      </select>
-
-      <!-- Dropdown para Sitio del Campus -->
-      <label for="campus">Sitio del Campus</label>
-      <select v-model="selectedCampus" id="campus" class="styled-select">
-        <option value="">Ninguna</option>
-        <!-- Opción predeterminada -->
-        <option v-for="campus in campusSites" :key="campus" :value="campus">
-          {{ campus }}
         </option>
       </select>
     </div>
@@ -42,10 +32,14 @@
 export default {
   data() {
     return {
-      facultades: ["Facultad de Ciencias", "Facultad de Telemática"],
-      campusSites: ["Servicios", "CEI"],
+      facultades: [
+        "Facultad de Ciencias",
+        "Facultad de Telemática",
+        "Servicios",
+        "CEI",
+        "Facultad de Administración",
+      ],
       selectedFacultad: "",
-      selectedCampus: "",
     };
   },
   methods: {
@@ -79,9 +73,9 @@ export default {
 }
 
 .navbar-logo {
-    width: 50px;
-    height: auto;
-  }
+  width: 50px;
+  height: auto;
+}
 
 .checkout {
   max-width: 500px;

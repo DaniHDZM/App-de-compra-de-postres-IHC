@@ -1,6 +1,5 @@
 <template>
   <div class="order-confirmation">
-    <!-- Mensaje de agradecimiento -->
     <div class="thank-you-alert">
       <span class="check-icon">✔️</span>
       <p>¡Gracias por tu compra!</p>
@@ -9,12 +8,10 @@
       <small>
         Nos encontramos en camino a tu ubicación seleccionada, vamos con una
         playera rosa para que nos puedas identificar fácilmente, recuerda que si
-        seleccionaste transferencia deberás mostrarnos el comprobante de ella
-        :)"
+        seleccionaste transferencia deberás mostrarnos el comprobante de ella :)
       </small>
     </div>
 
-    <!-- Resumen de la compra -->
     <div class="order-summary">
       <h3>Resumen de Pedido</h3>
       <ul>
@@ -29,13 +26,12 @@
     <!-- Lugar de envío -->
     <div class="shipping-info">
       <h4>Envío a:</h4>
-      <p>{{ selectedShippingLocation }}</p>
+      <!-- Mostrar la opción seleccionada desde la página anterior -->
+      <p>{{ selectedFacultadCampus }}</p>
     </div>
 
-    <!-- Botón de volver al menú -->
     <button @click="goBackToMenu" class="back-button">Volver al Menú</button>
 
-    <!-- Espacio para el logo -->
     <div class="logo-space">
       <img src="../imagenes/CESARS BAKERY.png" alt="Logo" />
     </div>
@@ -47,11 +43,11 @@ export default {
   data() {
     return {
       cartItems: [
-        // Estos datos deberían venir del estado del carrito
         { name: "Brownie", price: 50, quantity: 1 },
         { name: "Galletas con Chispas", price: 30, quantity: 2 },
       ],
-      selectedShippingLocation: "Facultad de Ciencias - ",
+      selectedFacultadCampus:
+        this.$route.query.facultadCampus || "No seleccionado",
     };
   },
   computed: {
@@ -67,7 +63,7 @@ export default {
       return `$${price.toFixed(2)}`;
     },
     goBackToMenu() {
-      this.$router.push("/Productos"); // Redirige a la página principal del menú
+      this.$router.push("/Productos");
     },
   },
 };
