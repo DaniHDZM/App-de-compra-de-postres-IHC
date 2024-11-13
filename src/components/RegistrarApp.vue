@@ -1,8 +1,12 @@
 <template>
   <form @submit.prevent="handleRegister">
-    <div class="container">
+    <div class="Bar">
       <h1>Crea tu perfil</h1>
-      <hr>
+      <img src="../imagenes/CESARS BAKERY.png" alt="Avatar" class="avatar">
+
+      </div>
+    <div class="container">
+      
 
       <label for="email"><b>Email</b></label>
       <input type="email" placeholder="Coloca tu email" name="email" v-model="email" required>
@@ -146,11 +150,33 @@ button:hover {
   clear: both;
   display: table;
 }
+.Bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 30px;
+    border-bottom: 2px solid #f1f1f1;
+    background-color: #800080;
+  }
+  img.avatar {
+    width: 150px; /* Tamaño de la imagen */
+    height: 150px;
+    border-radius: 50%;
+    margin-right: 20px;
+  }
+  h1 {
+    margin-left: 20px;
+    color: #f1f1f1;
+  }
 
 /* Change styles for cancel button and signup button on extra small screens */
-@media screen and (max-width: 300px) {
+@media screen and (max-width: 500px) {
   .cancelbtn, .signupbtn {
      width: 100%;
+  }
+  img.avatar {
+    width: 50px;
+    height: auto;
   }
 }
 </style>

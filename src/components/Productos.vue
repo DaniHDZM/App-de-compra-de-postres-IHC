@@ -24,7 +24,7 @@
             <h1>{{ product.description }}</h1>
           </td>
           <td>
-            <h1>{{ product.price }}</h1>
+            <h1>${{ product.price }}</h1>
           </td>
           <td>
             <img
@@ -152,34 +152,33 @@ export default {
 .navbar-title {
   font-size: 24px;
   font-weight: bold;
-  margin-right: auto; /* Título alineado a la izquierda */
+  margin-right: auto;
 }
 
 .navbar-logo {
-  width: 150px; /* Tamaño de la imagen */
+  width: 150px;
   height: 150px;
   border-radius: 50%;
-  margin: 0 auto; /* Centra la imagen en la navbar */
+  margin: 0 auto;
 }
 
 .goToCartBtn {
   background-color: #b069db;
   color: white;
-  padding: 10px 20px;
-  cursor: pointer;
-  border: none;
-  font-size: 20px;
+  padding: 8px 16px;
+  font-size: 16px;
+  margin-top: 10px;
 }
 
 /* Estilos de tabla y otros */
 table {
   width: 100%;
   border-collapse: collapse;
+  font-size: 14px;
 }
 
-th,
-td {
-  padding: 80px;
+th, td {
+  padding: 20px 10px;
   text-align: center;
   border-bottom: 1px solid #ddd;
 }
@@ -190,9 +189,10 @@ th {
 }
 
 button {
-  padding: 10px 50px;
+  padding: 8px 20px;
   border: none;
   cursor: pointer;
+  font-size: 14px;
 }
 
 .addBtn {
@@ -206,15 +206,15 @@ button {
 }
 
 .product-image {
-  width: 250px;
-  height: 250px;
+  width: 100px;
+  height: 100px;
   object-fit: cover;
   border-radius: 5px;
 }
 
-h1,
-h2 {
-  font-size: 15px;
+/* Ajustes de encabezados */
+h1, h2 {
+  font-size: 16px;
 }
 
 @keyframes clickShrink {
@@ -231,5 +231,64 @@ h2 {
 
 .addBtn:active {
   animation: clickShrink 0.2s ease-in-out;
+}
+
+/* Media query para pantallas pequeñas (500px o menos) */
+@media (max-width: 500px) {
+  .navbar {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 10px;
+  }
+
+  .navbar-logo {
+    width: 50px;
+    height: auto;
+  }
+
+  .navbar-title {
+    font-size: 18px;
+    text-align: center;
+  }
+
+  .goToCartBtn {
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+
+  /* Ajuste de tabla en modo columna para mejor visualización */
+  table, tbody, tr, th, td {
+    display: block;
+    width: 100%;
+  }
+
+  th, td {
+    text-align: left;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  tr {
+    margin-bottom: 10px;
+  }
+
+  th h2, td h1 {
+    font-size: 14px;
+  }
+
+  .product-image {
+    width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+  }
+
+  .addBtn {
+    width: 100%;
+    font-size: 16px;
+    padding: 8px;
+  }
+  thead {
+    display: none;
+  }
 }
 </style>

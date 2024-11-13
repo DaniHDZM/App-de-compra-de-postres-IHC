@@ -1,10 +1,11 @@
 <template>
   <div class="CarritoApp">
-    <h2>Carrito de Compras</h2>
+    
     <header :class="['navbar', { 'navbar-hidden': isNavbarHidden }]">
       <h1 class="navbar-title">CÉSAR'S BAKERY</h1>
       <img src="../imagenes/CESARS BAKERY.png" alt="Logo" class="navbar-logo" />
     </header>
+    <h2>Carrito de Compras</h2>
     <table>
       <thead>
         <tr>
@@ -16,23 +17,27 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(item, index) in cartItems" :key="index">
-          <td>
-            <img
-              :src="item.imageUrl"
-              alt="Foto de producto"
-              class="product-image"
-            />
+        <tr v-for="(item, index) in cartItems" :key="index" class="product-row">
+          <th class="product-image-container">
+            <img :src="item.imageUrl" alt="Foto de producto" class="product-image" />
             <span>{{ item.name }}</span>
+          </th>
+          
+          <td class="controls-row">
+            <span class="product-price">{{ formatPrice(item.price) }}</span>
           </td>
-          <td>{{ formatPrice(item.price) }}</td>
-          <td>
-            <button @click="decreaseQuantity(item)">-</button>
-            <span>{{ item.quantity }}</span>
-            <button @click="increaseQuantity(item)">+</button>
+            <td>
+            <span class="product-quantity">
+              <button @click="decreaseQuantity(item)">-</button>
+              <span>{{ item.quantity }}</span>
+              <button @click="increaseQuantity(item)">+</button>
+            </span>
           </td>
-          <td>{{ formatPrice(item.price * item.quantity) }}</td>
           <td>
+            <span class="product-total">{{ formatPrice(item.price * item.quantity) }}</span>
+          </td>
+          
+          <td class="product-remove">
             <button @click="removeItem(index)">Eliminar</button>
           </td>
         </tr>
@@ -74,10 +79,10 @@
         <p><strong>Nombre:</strong> César Ramírez</p>
       </div>
 
-      <button @click="goBack" class="back-button">Regresar</button>
-      <router-link to="/EnvioApp" class="checkout-button"
-        >Ir a envío</router-link
-      >
+      <div class="button-container">
+        <button @click="goBack" class="back-button">Regresar</button>
+        <router-link to="/EnvioApp" class="checkout-button">Ir a envío</router-link>
+      </div>
     </div>
   </div>
 </template>
@@ -142,6 +147,7 @@ export default {
 </script>
 
 <style scoped>
+/* Estilos de la navbar */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -157,40 +163,44 @@ export default {
 .navbar-title {
   font-size: 24px;
   font-weight: bold;
-  margin-right: auto; /* Título alineado a la izquierda */
+  margin-right: auto;
 }
 
 .navbar-logo {
-  width: 150px; /* Tamaño de la imagen */
+  width: 150px;
   height: 150px;
   border-radius: 50%;
-  margin: 0 auto; /* Centra la imagen en la navbar */
 }
 
 .shopping-cart {
   max-width: 800px;
   margin: auto;
 }
+
 table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
 }
+
 th,
 td {
   padding: 12px;
   border: 1px solid #ddd;
   text-align: center;
 }
+
 .product-image {
   width: 50px;
   height: 50px;
   margin-right: 10px;
 }
+
 .total-section {
   text-align: right;
   margin-top: 20px;
 }
+
 .checkout-container {
   display: flex;
   justify-content: space-between;
@@ -244,6 +254,7 @@ button {
   margin: 0 5px;
   padding: 5px 10px;
 }
+
 .checkout-button {
   display: inline-block;
   margin-top: 20px;
@@ -254,9 +265,11 @@ button {
   text-align: center;
   border-radius: 5px;
 }
+
 .checkout-button:hover {
   background-color: #0056b3;
 }
+
 .back-button {
   padding: 8px 16px;
   background-color: red;
@@ -265,9 +278,152 @@ button {
   cursor: pointer;
   border-radius: 5px;
   margin-bottom: 20px;
-  margin-center: auto;
 }
+
 .back-button:hover {
   background-color: #cd1c18;
+}
+
+
+/* Media query para pantallas de 500px o menos */
+@media (max-width: 500px) {
+  thead {
+    display: none;
+  }
+
+  tr {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ddd;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: white;
+  }
+
+  td {
+    border: none;
+    padding: 8px 0;
+  }
+
+  /* Contenedor de imagen y nombre del producto */
+  .product-image-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+
+  .product-image {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+
+  /* Contenedor de controles en línea */
+  .controls-row {
+    display: flex;
+    flex-direction: column; /* Cambio a columna para apilar verticalmente */
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 10px;
+    padding: 10px 0;
+    margin: 10px 0;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+  }
+
+  /* Estilos para el precio */
+  .product-price {
+    display: block;
+    text-align: center;
+    font-weight: bold;
+    width: 100%; /* Asegura que tome todo el ancho */
+    margin: 5px 0; /* Añade un poco de espacio arriba y abajo */
+  }
+
+  /* Controles de cantidad */
+  .product-quantity {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .product-quantity button {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .product-total {
+    font-weight: bold;
+    min-width: 70px;
+    text-align: center;
+  }
+
+  /* Botón de eliminar */
+  .product-remove {
+    width: 100%;
+    text-align: center;
+  }
+
+  .product-remove button {
+    width: 100%;
+    padding: 10px;
+    background-color: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    margin-top: 10px;
+  }
+  .payment-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Contenedor específico para los botones */
+  .button-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+    width: 100%;
+  }
+
+  .back-button,
+  .checkout-button {
+    flex: 1;
+    padding: 12px;
+    margin: 0;
+    text-align: center;
+    border-radius: 5px;
+    font-size: 14px;
+  }
+
+  .back-button {
+    margin-bottom: 0;
+  }
+
+  .checkout-button {
+    margin-top: 0;
+  }
+  .navbar-logo {
+    width: 50px;
+    height: auto;
+  }
 }
 </style>

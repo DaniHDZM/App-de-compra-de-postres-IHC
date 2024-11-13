@@ -1,10 +1,11 @@
 <template>
   <div class="EnvioApp">
-    <h2>Envío</h2>
     <header :class="['navbar', { 'navbar-hidden': isNavbarHidden }]">
       <h1 class="navbar-title">CÉSAR'S BAKERY</h1>
       <img src="../imagenes/CESARS BAKERY.png" alt="Logo" class="navbar-logo" />
     </header>
+    <h2>Envío</h2>
+
     <div class="dropdowns">
       <!-- Dropdown para Facultad -->
       <label for="facultad">Facultad</label>
@@ -78,11 +79,9 @@ export default {
 }
 
 .navbar-logo {
-  width: 150px; /* Tamaño de la imagen */
-  height: 150px;
-  border-radius: 50%;
-  margin: 0 auto; /* Centra la imagen en la navbar */
-}
+    width: 50px;
+    height: auto;
+  }
 
 .checkout {
   max-width: 500px;

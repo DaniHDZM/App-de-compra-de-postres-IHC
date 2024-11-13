@@ -1,6 +1,7 @@
 <template>
   <div class="Bar">
     <h1>Inicia sesión</h1>
+    
     <img src="../imagenes/CESARS BAKERY.png" alt="Avatar" class="avatar">
   </div>
   <form @submit.prevent="handleLogin">
@@ -114,22 +115,23 @@ export default {
     align-items: center;
     padding-bottom: 30px;
     border-bottom: 2px solid #f1f1f1;
+    background-color: #800080;
   }
 
   /* Título centrado verticalmente */
-  .Bar h1 {
-    font-size: 24px;
-  }
+
   h1 {
     margin-left: 20px;
+    color: #f1f1f1;
   }
-  .Bar {
-    margin-right: 20px;
-  }
+
 
   /* Avatar image */
   img.avatar {
-    width: 10%;
+    width: 150px; /* Tamaño de la imagen */
+    height: 150px;
+    border-radius: 50%;
+    margin-right: 20px;
   }
 
   /* Add padding to containers */
@@ -156,7 +158,8 @@ export default {
       float: none;
     }
     img.avatar {
-      width: 20%;
+    width: 50px;
+    height: auto;
     }
   }
 </style>
