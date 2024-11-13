@@ -115,11 +115,18 @@ export default {
   },
   methods: {
     goToShipping() {
-      if (!this.selectedPayment) {
-        alert("Por favor selecciona un método de pago antes de continuar.");
-        return;
-      }
-      this.$router.push("/EnvioApp");
+    // Verifica que el carrito tenga productos
+    if (this.cartItems.length === 0) {
+      alert("Tu carrito está vacío. Agrega productos antes de proceder al envío.");
+      return;
+    }
+    // Verifica que se haya seleccionado un método de pago
+    if (!this.selectedPayment) {
+      alert("Por favor selecciona un método de pago antes de continuar.");
+      return;
+    }
+    // Si ambas condiciones se cumplen, procede a la página de envío
+    this.$router.push("/EnvioApp");
     },
     formatPrice(price) {
       return `$${price.toFixed(2)}`;
