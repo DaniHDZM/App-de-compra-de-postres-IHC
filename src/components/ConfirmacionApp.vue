@@ -47,7 +47,7 @@ export default {
         { name: "Galletas con Chispas", price: 30, quantity: 2 },
       ],
       selectedFacultadCampus:
-        this.$route.query.facultadCampus || "No seleccionado",
+        localStorage.getItem("selectedFacultadCampus") || "No seleccionado",
     };
   },
   computed: {

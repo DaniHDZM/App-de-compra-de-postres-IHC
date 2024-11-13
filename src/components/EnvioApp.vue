@@ -44,10 +44,14 @@ export default {
   },
   methods: {
     makeOrder() {
-      this.$router.push("/ConfirmacionApp"); // Redirige a la página de confirmación
+      // Guarda la opción seleccionada en localStorage
+      localStorage.setItem("selectedFacultadCampus", this.selectedFacultad);
+
+      // Redirige a la página de confirmación
+      this.$router.push("/ConfirmacionApp");
     },
     goBack() {
-      this.$router.back(); // Esto te llevará a la página anterior en la historia
+      this.$router.back();
     },
   },
 };
