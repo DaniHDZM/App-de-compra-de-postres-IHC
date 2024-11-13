@@ -6,6 +6,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import CarritoApp from "./components/CarritoApp.vue";
 import EnvioApp from "./components/EnvioApp.vue";
 import ConfirmacionApp from "./components/ConfirmacionApp.vue";
+import UltimoPedido from "./components/UltimoPedido.vue";
 
 import RegistrarApp from "./components/RegistrarApp.vue";
 import LoginApp from "./components/LoginApp.vue";
@@ -19,6 +20,7 @@ const routes = [
   { path: "/Carrito", component: CarritoApp },
   { path: "/EnvioApp", component: EnvioApp },
   { path: "/ConfirmacionApp", component: ConfirmacionApp },
+  { path: "/UltimoPedido", component: UltimoPedido}
 ];
 
 const router = createRouter({

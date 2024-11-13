@@ -59,6 +59,8 @@ export default {
       return `$${price.toFixed(2)}`;
     },
     goBackToMenu() {
+      this.saveOrderToHistory();
+      this.clearCart();
       this.$router.push("/Productos");
     },
     loadCartFromLocalStorage() {
@@ -66,6 +68,21 @@ export default {
       if (storedCart) {
         this.cartItems = JSON.parse(storedCart);
       }
+    },
+    saveOrderToHistory() {
+      const orderHistory = JSON.parse(localStorage.getItem("orderHistory")) || [];
+      const newOrder = {
+        items: this.cartItems,
+        total: this.totalPrice,
+        shippingLocation: this.selectedFacultadCampus,
+        date: new Date().toISOString(), // Guarda la fecha del pedido
+      };
+      orderHistory.push(newOrder);
+      localStorage.setItem("orderHistory", JSON.stringify(orderHistory));
+    },
+    clearCart() {
+      localStorage.removeItem("cart");
+      this.cartItems = [];
     },
   },
   mounted() {

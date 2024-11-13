@@ -3,7 +3,9 @@
     <header :class="['navbar', { 'navbar-hidden': isNavbarHidden }]">
       <h1 class="navbar-title">CÉSAR'S BAKERY</h1>
       <img src="../imagenes/CESARS BAKERY.png" alt="Logo" class="navbar-logo" />
+      <button class="goToCartBtn" @click="goToUltimoPedido">Ultimo pedido</button>
       <button class="goToCartBtn" @click="goToCart">Ir al Carrito</button>
+
     </header>
     <table>
       <thead>
@@ -122,6 +124,9 @@ export default {
     goToCart() {
       this.$router.push("/carrito");
     },
+    goToUltimoPedido() {
+      this.$router.push("/UltimoPedido")
+    },
     loadCartFromLocalStorage() {
       const storedCart = localStorage.getItem("cart");
       if (storedCart) {
@@ -168,6 +173,8 @@ export default {
   padding: 8px 16px;
   font-size: 16px;
   margin-top: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
 }
 
 /* Estilos de tabla y otros */
