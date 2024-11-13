@@ -161,6 +161,19 @@ export default {
 </script>
 
 <style scoped>
+tbody tr {
+  background-color: #f9f9f9; /* Fondo claro para las filas de productos */
+}
+
+tbody tr:nth-child(even) {
+  background-color: #e0e0e0; /* Fondo un poco más oscuro para filas alternas */
+}
+
+.product-image-container {
+  background-color: transparent; /* Fondo claro en el contenedor de imagen */
+  color: #333; /* Color de texto más oscuro para legibilidad */
+}
+
 /* Estilos de la navbar */
 .navbar {
   display: flex;
