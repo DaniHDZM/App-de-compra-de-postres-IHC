@@ -5,6 +5,14 @@
       <span class="check-icon">✔️</span>
       <p>¡Gracias por tu compra!</p>
     </div>
+    <div>
+      <small>
+        Nos encontramos en camino a tu ubicación seleccionada, vamos con una
+        playera rosa para que nos puedas identificar fácilmente, recuerda que si
+        seleccionaste transferencia deberás mostrarnos el comprobante de ella
+        :)"
+      </small>
+    </div>
 
     <!-- Resumen de la compra -->
     <div class="order-summary">
@@ -29,7 +37,7 @@
 
     <!-- Espacio para el logo -->
     <div class="logo-space">
-      <img src="ruta_al_logo" alt="Logo" />
+      <img src="../imagenes/CESARS BAKERY.png" alt="Logo" />
     </div>
   </div>
 </template>

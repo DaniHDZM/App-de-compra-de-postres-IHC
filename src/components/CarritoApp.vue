@@ -1,6 +1,10 @@
 <template>
   <div class="CarritoApp">
     <h2>Carrito de Compras</h2>
+    <header :class="['navbar', { 'navbar-hidden': isNavbarHidden }]">
+      <h1 class="navbar-title">CÉSAR'S BAKERY</h1>
+      <img src="../imagenes/CESARS BAKERY.png" alt="Logo" class="navbar-logo" />
+    </header>
     <table>
       <thead>
         <tr>
@@ -38,8 +42,43 @@
       <h3>Total de Productos: {{ totalQuantity }}</h3>
       <h3>Precio Total: {{ formatPrice(totalPrice) }}</h3>
     </div>
-    <router-link to="/EnvioApp" class="checkout-button">Ir a Pagar</router-link>
-    <button @click="goBack" class="back-button">Regresar</button>
+    <div class="payment-info">
+      <h3>Información de Pago</h3>
+
+      <label class="payment-option">
+        <input
+          type="radio"
+          value="efectivo"
+          v-model="selectedPayment"
+          name="paymentMethod"
+        />
+        <span class="radio-custom"></span>
+        <span>Efectivo</span>
+      </label>
+
+      <label class="payment-option">
+        <input
+          type="radio"
+          value="transferencia"
+          v-model="selectedPayment"
+          name="paymentMethod"
+        />
+        <span class="radio-custom"></span>
+        <span>Transferencia</span>
+      </label>
+
+      <!-- Información del banco que se muestra si "Transferencia" está seleccionado -->
+      <div v-if="selectedPayment === 'transferencia'" class="bank-details">
+        <p><strong>Banco:</strong> BBVA</p>
+        <p><strong>Número de Tarjeta:</strong> 1234 5678 9012 3456</p>
+        <p><strong>Nombre:</strong> César Ramírez</p>
+      </div>
+
+      <button @click="goBack" class="back-button">Regresar</button>
+      <router-link to="/EnvioApp" class="checkout-button"
+        >Ir a envío</router-link
+      >
+    </div>
   </div>
 </template>
 
@@ -47,7 +86,8 @@
 export default {
   data() {
     return {
-      cartItems: [] // Inicialmente vacío, se llenará con los datos de localStorage
+      cartItems: [], // Inicialmente vacío, se llenará con los datos de localStorage
+      selectedPayment: null, // Inicialmente ninguna opción seleccionada
     };
   },
   computed: {
@@ -81,27 +121,52 @@ export default {
     },
     updateLocalStorage() {
       // Guarda el carrito actualizado en localStorage
-      localStorage.setItem('cart', JSON.stringify(this.cartItems));
+      localStorage.setItem("cart", JSON.stringify(this.cartItems));
     },
+
     goBack() {
       this.$router.back(); // Esto te llevará a la página anterior en la historia
     },
     loadCartFromLocalStorage() {
-      const storedCart = localStorage.getItem('cart');
+      const storedCart = localStorage.getItem("cart");
       if (storedCart) {
         this.cartItems = JSON.parse(storedCart);
       }
-    }
+    },
   },
   mounted() {
     // Carga el carrito desde el localStorage al montar el componente
     this.loadCartFromLocalStorage();
-  }
+  },
 };
 </script>
 
-
 <style scoped>
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: purple;
+  color: white;
+  padding: 10px 20px;
+  position: relative;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-right: auto; /* Título alineado a la izquierda */
+}
+
+.navbar-logo {
+  width: 150px; /* Tamaño de la imagen */
+  height: 150px;
+  border-radius: 50%;
+  margin: 0 auto; /* Centra la imagen en la navbar */
+}
+
 .shopping-cart {
   max-width: 800px;
   margin: auto;
@@ -126,6 +191,55 @@ td {
   text-align: right;
   margin-top: 20px;
 }
+.checkout-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.product-table {
+  flex: 2;
+}
+
+.payment-info {
+  border: 1px solid #ccc;
+  padding: 15px;
+  border-radius: 5px;
+}
+
+.payment-option input[type="radio"] {
+  display: none; /* Oculta el círculo predeterminado del input */
+}
+
+.radio-custom {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #007bff;
+  border-radius: 50%;
+  margin-right: 10px;
+  display: inline-block;
+  position: relative;
+}
+
+.payment-option input[type="radio"]:checked + .radio-custom::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  background-color: #007bff;
+  border-radius: 50%;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+}
+
+.bank-details {
+  margin-top: 10px;
+  font-size: 0.9em;
+  color: #333;
+}
+
 button {
   margin: 0 5px;
   padding: 5px 10px;
@@ -146,12 +260,14 @@ button {
 .back-button {
   padding: 8px 16px;
   background-color: red;
+  color: white;
   border: none;
   cursor: pointer;
   border-radius: 5px;
   margin-bottom: 20px;
+  margin-center: auto;
 }
 .back-button:hover {
-  background-color: red;
+  background-color: #cd1c18;
 }
 </style>
