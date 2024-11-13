@@ -26,7 +26,6 @@
     <!-- Lugar de envío -->
     <div class="shipping-info">
       <h4>Envío a:</h4>
-      <!-- Mostrar la opción seleccionada desde la página anterior -->
       <p>{{ selectedFacultadCampus }}</p>
     </div>
 
@@ -42,10 +41,7 @@
 export default {
   data() {
     return {
-      cartItems: [
-        { name: "Brownie", price: 50, quantity: 1 },
-        { name: "Galletas con Chispas", price: 30, quantity: 2 },
-      ],
+      cartItems: [], // Inicialmente vacío, se llenará con los datos de localStorage
       selectedFacultadCampus:
         localStorage.getItem("selectedFacultadCampus") || "No seleccionado",
     };
@@ -65,9 +61,19 @@ export default {
     goBackToMenu() {
       this.$router.push("/Productos");
     },
+    loadCartFromLocalStorage() {
+      const storedCart = localStorage.getItem("cart");
+      if (storedCart) {
+        this.cartItems = JSON.parse(storedCart);
+      }
+    },
+  },
+  mounted() {
+    this.loadCartFromLocalStorage();
   },
 };
 </script>
+
 
 <style scoped>
 .order-confirmation {
