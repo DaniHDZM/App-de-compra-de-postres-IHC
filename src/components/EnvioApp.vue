@@ -11,12 +11,7 @@
       <label for="facultad">Sitio</label>
       <select v-model="selectedFacultad" id="facultad" class="styled-select">
         <option value="">Ninguna</option>
-        <!-- Opción predeterminada -->
-        <option
-          v-for="facultad in facultades"
-          :key="facultad"
-          :value="facultad"
-        >
+        <option v-for="facultad in facultades" :key="facultad" :value="facultad">
           {{ facultad }}
         </option>
       </select>
@@ -44,6 +39,12 @@ export default {
   },
   methods: {
     makeOrder() {
+      // Validación para asegurarse de que se ha seleccionado una facultad
+      if (!this.selectedFacultad) {
+        alert("Por favor, selecciona una ubicación antes de hacer el pedido.");
+        return;
+      }
+
       // Guarda la opción seleccionada en localStorage
       localStorage.setItem("selectedFacultadCampus", this.selectedFacultad);
 
@@ -56,6 +57,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 .navbar {
