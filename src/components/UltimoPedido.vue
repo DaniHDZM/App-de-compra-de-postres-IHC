@@ -15,6 +15,8 @@
       <div v-else>
         <p>No hay pedidos anteriores.</p>
       </div>
+      <button @click="goBack" class="back-button">Regresar</button>
+
     </div>
   </template>
   
@@ -39,10 +41,14 @@
           this.lastOrder = orderHistory[orderHistory.length - 1];
         }
       },
+      goBack() {
+        this.$router.push("/Productos")
+      },
     },
     mounted() {
       this.loadLastOrder();
     },
+    
   };
   </script>
   
@@ -68,5 +74,18 @@
   .last-order ul li {
     margin: 5px 0;
   }
+  .back-button {
+  padding: 8px 16px;
+  background-color: red;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  margin-center: auto;
+}
+.back-button:hover {
+  background-color: #cd1c18;
+}
   </style>
   
