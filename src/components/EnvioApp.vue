@@ -17,6 +17,9 @@
       </select>
     </div>
 
+    <!-- Mostrar mensaje de error si no se ha seleccionado una ubicación -->
+    <p v-if="locationError" class="error">{{ locationError }}</p>
+
     <!-- Botón para hacer pedido -->
     <button @click="goBack" class="back-button">Regresar</button>
     <button @click="makeOrder" class="order-button">Hacer Pedido</button>
@@ -35,14 +38,17 @@ export default {
         "Facultad de Administración",
       ],
       selectedFacultad: "",
+      locationError: "" // Mensaje de error si no se selecciona una ubicación
     };
   },
   methods: {
     makeOrder() {
       // Validación para asegurarse de que se ha seleccionado una facultad
       if (!this.selectedFacultad) {
-        alert("Por favor, selecciona una ubicación antes de hacer el pedido.");
+        this.locationError = "Por favor, selecciona una ubicación antes de hacer el pedido.";
         return;
+      } else {
+        this.locationError = ""; // Limpiar el mensaje de error si se selecciona una ubicación
       }
 
       // Guarda la opción seleccionada en localStorage
@@ -57,7 +63,6 @@ export default {
   },
 };
 </script>
-
 
 <style scoped>
 .navbar {
@@ -75,7 +80,7 @@ export default {
 .navbar-title {
   font-size: 24px;
   font-weight: bold;
-  margin-right: auto; /* Título alineado a la izquierda */
+  margin-right: auto;
 }
 
 .navbar-logo {
@@ -142,9 +147,15 @@ button {
   cursor: pointer;
   border-radius: 5px;
   margin-bottom: 20px;
-  margin-center: auto;
 }
 .back-button:hover {
   background-color: #cd1c18;
+}
+
+/* Error message styling */
+.error {
+  color: red;
+  font-size: 14px;
+  margin-bottom: 10px;
 }
 </style>
