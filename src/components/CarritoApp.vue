@@ -5,6 +5,10 @@
       <img src="../imagenes/CESARS BAKERY.png" alt="Logo" class="navbar-logo" />
     </header>
     <h2>Carrito de Compras</h2>
+
+    <!-- Mensaje de error si existe -->
+    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+
     <table>
       <thead>
         <tr>
@@ -18,14 +22,9 @@
       <tbody>
         <tr v-for="(item, index) in cartItems" :key="index" class="product-row">
           <th class="product-image-container">
-            <img
-              :src="item.imageUrl"
-              alt="Foto de producto"
-              class="product-image"
-            />
+            <img :src="item.imageUrl" alt="Foto de producto" class="product-image" />
             <span>{{ item.name }}</span>
           </th>
-
           <td class="controls-row">
             <span class="product-price">{{ formatPrice(item.price) }}</span>
           </td>
@@ -37,47 +36,33 @@
             </span>
           </td>
           <td>
-            <span class="product-total">{{
-              formatPrice(item.price * item.quantity)
-            }}</span>
+            <span class="product-total">{{ formatPrice(item.price * item.quantity) }}</span>
           </td>
-
           <td class="product-remove">
             <button @click="removeItem(index)">Eliminar</button>
           </td>
         </tr>
       </tbody>
     </table>
+
     <div class="total-section">
       <h3>Total de Productos: {{ totalQuantity }}</h3>
       <h3>Precio Total: {{ formatPrice(totalPrice) }}</h3>
     </div>
     <div class="payment-info">
       <h3>Información de Pago</h3>
-
       <label class="payment-option">
-        <input
-          type="radio"
-          value="efectivo"
-          v-model="selectedPayment"
-          name="paymentMethod"
-        />
+        <input type="radio" value="efectivo" v-model="selectedPayment" name="paymentMethod" />
         <span class="radio-custom"></span>
         <span>Efectivo</span>
       </label>
 
       <label class="payment-option">
-        <input
-          type="radio"
-          value="transferencia"
-          v-model="selectedPayment"
-          name="paymentMethod"
-        />
+        <input type="radio" value="transferencia" v-model="selectedPayment" name="paymentMethod" />
         <span class="radio-custom"></span>
         <span>Transferencia</span>
       </label>
 
-      <!-- Información del banco que se muestra si "Transferencia" está seleccionado -->
       <div v-if="selectedPayment === 'transferencia'" class="bank-details">
         <p><strong>Banco:</strong> BBVA</p>
         <p><strong>Número de Tarjeta:</strong> 1234 5678 9012 3456</p>
@@ -86,9 +71,7 @@
 
       <div class="button-container">
         <button @click="goBack" class="back-button">Regresar</button>
-        <button @click="goToShipping" class="checkout-button">
-          Ir a envío
-        </button>
+        <button @click="goToShipping" class="checkout-button">Ir a envío</button>
       </div>
     </div>
   </div>
@@ -100,6 +83,7 @@ export default {
     return {
       cartItems: [], // Inicialmente vacío, se llenará con los datos de localStorage
       selectedPayment: null, // Inicialmente ninguna opción seleccionada
+      errorMessage: "", // Mensaje de error
     };
   },
   computed: {
@@ -107,51 +91,44 @@ export default {
       return this.cartItems.reduce((total, item) => total + item.quantity, 0);
     },
     totalPrice() {
-      return this.cartItems.reduce(
-        (total, item) => total + item.price * item.quantity,
-        0
-      );
+      return this.cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
     },
   },
   methods: {
     goToShipping() {
-    // Verifica que el carrito tenga productos
-    if (this.cartItems.length === 0) {
-      alert("Tu carrito está vacío. Agrega productos antes de proceder al envío.");
-      return;
-    }
-    // Verifica que se haya seleccionado un método de pago
-    if (!this.selectedPayment) {
-      alert("Por favor selecciona un método de pago antes de continuar.");
-      return;
-    }
-    // Si ambas condiciones se cumplen, procede a la página de envío
-    this.$router.push("/EnvioApp");
+      if (this.cartItems.length === 0) {
+        this.errorMessage = "Tu carrito está vacío. Agrega productos antes de proceder al envío.";
+        return;
+      }
+      if (!this.selectedPayment) {
+        this.errorMessage = "Por favor selecciona un método de pago antes de continuar.";
+        return;
+      }
+      this.errorMessage = ""; // Limpiar mensaje de error si todo es correcto
+      this.$router.push("/EnvioApp");
     },
     formatPrice(price) {
       return `$${price.toFixed(2)}`;
     },
     increaseQuantity(item) {
       item.quantity += 1;
-      this.updateLocalStorage(); // Actualiza el localStorage cuando se cambia la cantidad
+      this.updateLocalStorage();
     },
     decreaseQuantity(item) {
       if (item.quantity > 1) {
         item.quantity -= 1;
-        this.updateLocalStorage(); // Actualiza el localStorage cuando se cambia la cantidad
+        this.updateLocalStorage();
       }
     },
     removeItem(index) {
       this.cartItems.splice(index, 1);
-      this.updateLocalStorage(); // Actualiza el localStorage después de eliminar un producto
+      this.updateLocalStorage();
     },
     updateLocalStorage() {
-      // Guarda el carrito actualizado en localStorage
       localStorage.setItem("cart", JSON.stringify(this.cartItems));
     },
-
     goBack() {
-      this.$router.back(); // Esto te llevará a la página anterior en la historia
+      this.$router.back();
     },
     loadCartFromLocalStorage() {
       const storedCart = localStorage.getItem("cart");
@@ -161,13 +138,18 @@ export default {
     },
   },
   mounted() {
-    // Carga el carrito desde el localStorage al montar el componente
     this.loadCartFromLocalStorage();
   },
 };
 </script>
 
 <style scoped>
+.error {
+  color: red;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
 tbody tr {
   background-color: #f9f9f9; /* Fondo claro para las filas de productos */
 }
