@@ -5,6 +5,7 @@
       <img src="../imagenes/CESARS BAKERY.png" alt="Logo" class="navbar-logo" />
       <button class="goToCartBtn" @click="goToUltimoPedido">Ultimo pedido</button>
       <button class="goToCartBtn" @click="goToCart">Ir al Carrito</button>
+      <button class="goToCartBtn" @click="logout">Cerrar sesión</button>
 
     </header>
     <table>
@@ -48,10 +49,16 @@
 
 <script>
 export default {
+  created() {
+    const user = localStorage.getItem("user");
+    if (!user) {
+      this.$router.push("/"); // 🔹 Si no hay sesión, redirige al login
+    }
+  },
   name: "ProductosView",
   data() {
     return {
-      isAuthenticated: true,
+      isAuthenticated: false,
       products: [
         {
           id: 1,
@@ -99,7 +106,7 @@ export default {
             "https://cdn.shopify.com/s/files/1/0360/9813/products/Pay_de_Queso_2019_Rebanada_copy_grande.jpg?v=1573082909",
         },
         {
-          id: 5,
+          id: 6,
           name: "Rol de canela",
           description:
             "Suave y esponjoso rol de canela cubierto con un glaseado dulce. Un favorito reconfortante para cualquier momento.",
@@ -133,9 +140,66 @@ export default {
         this.cart = JSON.parse(storedCart);
       }
     },
+    async logout() {
+      try {
+        // Call the server logout endpoint
+        const response = await fetch('http://localhost:4006/api/auth/logout', {
+          credentials: 'include'
+        });
+        
+        // Clear localStorage
+        localStorage.removeItem("user");
+        localStorage.removeItem("cart");
+        this.isAuthenticated = false;
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          // If we received a SAML logout URL, redirect to it
+          if (data.logoutUrl) {
+            window.location.href = data.logoutUrl;
+            return;
+          }
+        }
+        
+        // If no SAML redirect or if there was an error, just go to login
+        this.$router.push("/");
+      } catch (error) {
+        console.error('Error during logout:', error);
+        localStorage.removeItem("user");
+        localStorage.removeItem("cart");
+        this.isAuthenticated = false;
+        this.$router.push("/");
+      }
+    },
+    async checkServerAuthentication() {
+    try {
+      const response = await fetch('http://localhost:4006/api/auth/check', { 
+        credentials: 'include' 
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem("user", JSON.stringify(data.user));
+        this.isAuthenticated = true;
+        this.loadCartFromLocalStorage();
+      } else {
+        this.$router.push("/");
+      }
+    } catch (error) {
+      console.error('Error verificando sesión:', error);
+      this.$router.push("/");
+    }
+  },
   },
   mounted() {
-    this.loadCartFromLocalStorage();
+    const user = localStorage.getItem("user");
+      if (!user) {
+        this.checkServerAuthentication();
+      } else {
+        this.isAuthenticated = true;
+        this.loadCartFromLocalStorage();
+      }
   },
 };
 </script>

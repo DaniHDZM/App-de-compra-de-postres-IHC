@@ -1,27 +1,16 @@
 <template>
-  <div class="Bar">
-    <h1>Inicia sesión</h1>
-    
+  <div class="navbar">
     <img src="../imagenes/CESARS BAKERY.png" alt="Avatar" class="avatar">
+    <h1 class="title">Cesar's Bakery</h1>
+    <button class="login-btn" @click="handleLogin()">Iniciar Sesión</button>
   </div>
-  <form @submit.prevent="handleLogin">
-    <div class="container">
-      <label for="uname"><b>Email</b></label>
-      <input type="email" placeholder="Enter Email" name="uname" v-model="email" required>
-
-      <label for="psw"><b>Password</b></label>
-      <input type="password" placeholder="Enter Password" name="psw" v-model="password" required>
-
-      <label>
-        <input type="checkbox" v-model="rememberMe"> Recuérdame
-      </label>
-
-      <div class="clearfix">
-        <button type="button" class="cancelbtn" @click="goToRegister">Ir a registrarse</button>
-        <button type="submit" class="signupbtn">Iniciar Sesión</button>
-      </div>
+  
+  <div class="background">
+    <div class="content-container">
+      <h2>Bienvenido a Cesar's Bakery</h2>
+      <p>Disfruta de los mejores productos horneados con la mejor calidad y sabor. ¡Únete a nuestra comunidad!</p>
     </div>
-  </form>
+  </div>
 </template>
 
 <script>
@@ -29,137 +18,113 @@ export default {
   name: 'LoginApp',
   data() {
     return {
-      email: '',
-      password: '',
-      rememberMe: false, // Estado del checkbox
+      email: localStorage.getItem('email') || '',
+      rememberMe: localStorage.getItem('rememberMe') === 'true',
+      user: null,
     };
   },
-  mounted() {
-    // Recupera el email y contraseña de localStorage si el usuario marcó "Recuérdame"
-    if (localStorage.getItem('rememberMe') === 'true') {
-      this.email = localStorage.getItem('email') || '';
-      this.password = localStorage.getItem('password') || '';
-      this.rememberMe = true;
-    }
-  },
   methods: {
-    goToRegister() {
-      this.$router.push('/RegistrarApp');
+    async checkLogin() {
+      console.log("Checking login status...");
+      try {
+        const response = await fetch('http://localhost:4006/api/auth/check', { 
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log("Auth check response status:", response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Auth check data:", data);
+          this.user = data.user;
+          localStorage.setItem('user', JSON.stringify(data.user));
+          
+          // Only redirect if not already on the products page
+          if (this.$route.path !== '/Productos') {
+            console.log("Redirecting to products page");
+            this.$router.push('/Productos');
+          }
+        } else {
+          console.log("Not authenticated, staying on login page");
+          localStorage.removeItem('user');
+        }
+      } catch (error) {
+        console.error('Error checking login status:', error);
+        localStorage.removeItem('user');
+      }
     },
     handleLogin() {
-      // Verifica si "Recuérdame" está marcado y guarda o limpia datos según corresponda
-      if (this.rememberMe) {
-        localStorage.setItem('email', this.email);
-        localStorage.setItem('password', this.password);
-        localStorage.setItem('rememberMe', true);
-      } else {
-        localStorage.removeItem('email');
-        localStorage.removeItem('password');
-        localStorage.setItem('rememberMe', false);
-      }
-
-      // Simulación de autenticación exitosa
-      this.$router.push('/productos');
+      window.location.href = 'http://localhost:4006';
     }
+  },
+  mounted() {
+    this.checkLogin(); // 🔹 Verifica autenticación antes de redirigir
   }
 };
 </script>
 
+
 <style scoped>
-  /* Bordered form */
-  form {
-    border: 3px solid #f1f1f1;
-  }
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgb(150, 2, 150);
+  padding: 15px 30px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+}
 
-  /* Full-width inputs */
-  input[type=email], input[type=password] {
-    width: 100%;
-    padding: 12px 20px;
-    margin: 8px 0;
-    display: inline-block;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-  }
+.title {
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  flex-grow: 1;
+}
 
-  /* Set a style for all buttons */
-  button {
-    background-color: #04AA6D;
-    color: white;
-    padding: 14px 20px;
-    margin: 8px 0;
-    border: none;
-    cursor: pointer;
-    width: 100%;
-  }
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+}
 
-  /* Add a hover effect for buttons */
-  button:hover {
-    opacity: 0.8;
-  }
+.login-btn {
+  background-color: #04AA6D;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
 
-  .cancelbtn {
-    padding: 14px 20px;
-    background-color: #f44336;
-  }
+.background {
+  background-image: url('https://wallpapers.com/images/hd/bakery-background-with-breads-fma2es3go1xv8qv1.jpg');
+  background-size: cover;
+  background-position: center;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 80px;
+}
 
-  /* Extra style for the cancel button (red) */
-  .cancelbtn, .signupbtn {
-    float: left;
-    width: 50%;
-  }
+.content-container {
+  background: rgba(230, 188, 153);
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  max-width: 600px;
+}
 
-  /* Center the avatar image inside this container */
-  .Bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 30px;
-    border-bottom: 2px solid #f1f1f1;
-    background-color: #800080;
-  }
-
-  /* Título centrado verticalmente */
-
-  h1 {
-    margin-left: 20px;
-    color: #f1f1f1;
-  }
-
-
-  /* Avatar image */
-  img.avatar {
-    width: 150px; /* Tamaño de la imagen */
-    height: 150px;
-    border-radius: 50%;
-    margin-right: 20px;
-  }
-
-  /* Add padding to containers */
-  .container {
-    padding: 16px;
-  }
-
-  /* The "Forgot password" text */
-  span.psw {
-    float: right;
-    padding-top: 16px;
-  }
-
-  .clearfix::after {
-    content: "";
-    clear: both;
-    display: table;
-  }
-
-  /* Change styles for span and cancel button on extra small screens */
-  @media screen and (max-width: 500px) {
-    span.psw {
-      display: block;
-      float: none;
-    }
-    img.avatar {
-    width: 50px;
-    height: auto;
-    }
-  }
+h2 {
+  color: #333;
+}
 </style>

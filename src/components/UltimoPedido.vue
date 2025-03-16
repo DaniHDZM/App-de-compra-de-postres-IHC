@@ -48,6 +48,12 @@
     mounted() {
       this.loadLastOrder();
     },
+    created() {
+    const user = localStorage.getItem("user");
+    if (!user) {
+      this.$router.push("/"); // Redirige al login si no hay sesión
+    }
+  }
     
   };
   </script>
