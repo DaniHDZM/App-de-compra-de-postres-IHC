@@ -35,7 +35,7 @@
       <p v-if="registerError" class="error-message">{{ registerError }}</p>
       <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
 
-      <button type="submit" :disabled="isLoading || !isPasswordValid || password !== passwordRepeat">
+      <button type="submit" :disabled="isLoading || !isPasswordValid">
         {{ isLoading ? 'Registrando...' : 'Crear cuenta' }}
       </button>
       <button type="button" @click="goToSignIn" :disabled="isLoading" class="secondary-button">
@@ -63,18 +63,15 @@ export default {
       isPasswordValid: false,
     };
   },
-  // NUEVA SECCIÓN: Propiedades computadas
   computed: {
     hasSpecialChar() {
-      // Definimos la regex una sola vez aquí
-      // La barra invertida para escapar la coma es redundante en JS regex pero no hace daño.
-      // La regex que compartiste tiene una coma extra: \\|,,.<>
-      // La corregida debería ser: \\|,<.>
-      // Sin embargo, para no complicar, la regex más robusta es la que se recomienda.
-      // Aquí estoy usando una regex robusta para caracteres especiales
+      // eslint-disable-next-line no-useless-escape
       const specialCharRegex = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
       return specialCharRegex.test(this.password);
     }
+  },
+  async mounted() {
+    this.validatePassword();
   },
   methods: {
     goToSignIn() {
@@ -99,7 +96,6 @@ export default {
         isValid = false;
         requirements.push("La contraseña debe contener al menos un número.");
       }
-      // CAMBIO AQUÍ: Usamos la propiedad computada para la verificación.
       if (!this.hasSpecialChar) {
         isValid = false;
         requirements.push("La contraseña debe contener al menos un carácter especial.");
@@ -108,6 +104,9 @@ export default {
       if (p !== this.passwordRepeat && this.passwordRepeat !== '') {
         isValid = false;
         requirements.push("Las contraseñas no coinciden.");
+      } else if (p.length > 0 && this.passwordRepeat.length > 0 && p !== this.passwordRepeat) {
+          isValid = false;
+          requirements.push("Las contraseñas no coinciden.");
       }
 
       if (requirements.length > 0) {
@@ -116,7 +115,11 @@ export default {
         this.passwordError = '';
       }
 
-      this.isPasswordValid = isValid && (p === this.passwordRepeat);
+      this.isPasswordValid = isValid && p.length > 0 && this.passwordRepeat.length > 0 && p === this.passwordRepeat;
+
+      if ((p.length === 0 || this.passwordRepeat.length === 0) && (p.length !== this.passwordRepeat.length)) {
+          this.isPasswordValid = false;
+      }
     },
 
     async handleRegister() {
@@ -217,7 +220,6 @@ export default {
 </script>
 
 <style scoped>
-/* (Tus estilos CSS aquí, sin cambios, ya que no afectan la lógica del error) */
 .register-container {
   max-width: 400px;
   margin: 50px auto;
