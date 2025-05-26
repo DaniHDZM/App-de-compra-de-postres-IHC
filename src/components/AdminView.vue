@@ -391,7 +391,7 @@
           this.products = [];
           this.resetForm(); // Limpiar el formulario y otros estados
           // Redirigir a la página de inicio de sesión o a la página principal
-          this.$router.push('/auth');
+          this.$router.push('/');
         } catch (error) {
           console.error("Error al cerrar sesión:", error.message);
           alert("Hubo un problema al cerrar sesión: " + error.message);
