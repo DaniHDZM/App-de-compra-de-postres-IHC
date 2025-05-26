@@ -65,7 +65,6 @@ export default {
             .single();
 
           if (profileError) {
-            console.error("Error fetching user role:", profileError.message);
             this.loginError = 'Error al obtener el rol del usuario. Intenta de nuevo.';
             // Still redirect to products as a fallback if role can't be determined
             this.$router.push('/Productos');
@@ -89,7 +88,6 @@ export default {
         } else {
           this.loginError = 'Error al iniciar sesión: ' + error.message;
         }
-        console.error('Login error:', error);
       } finally {
         this.isLoading = false;
       }

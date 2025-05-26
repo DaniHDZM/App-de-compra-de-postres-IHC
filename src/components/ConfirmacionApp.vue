@@ -93,7 +93,6 @@ export default {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
-          console.error("Error getting session:", error);
           this.isAuthenticated = false;
           return;
         }
@@ -102,7 +101,6 @@ export default {
           this.$router.push('/'); // Redirect to login if not authenticated
         }
       } catch (error) {
-        console.error("Error al verificar el estado de autenticación:", error);
         this.isAuthenticated = false;
         this.$router.push('/'); // Redirect on general error
       }

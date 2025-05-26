@@ -135,8 +135,7 @@ export default {
       }
       
       try {
-        console.log('--- Inicio de registro ---');
-        console.log('Intentando crear usuario en Supabase Auth con email:', this.email);
+        
 
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: this.email,
@@ -144,7 +143,6 @@ export default {
         });
 
         if (signUpError) {
-          console.error('Error durante signUp:', signUpError);
           if (signUpError.message.includes('User already registered')) {
             this.registerError = "Este email ya está registrado. Por favor, inicia sesión.";
           } else {
@@ -153,38 +151,31 @@ export default {
           return;
         }
 
-        console.log('Resultado de signUp:', signUpData);
 
         let currentUser = signUpData.user;
         let currentSession = signUpData.session;
 
         if (!currentSession && currentUser) { 
-            console.warn('Advertencia: Sesión nula después de signUp pero usuario creado. Intentando signInWithPassword para asegurar sesión activa...');
             const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
                 email: this.email,
                 password: this.password,
             });
 
             if (signInError) {
-                console.error('Error durante signIn después de signUp (contingencia):', signInError);
                 this.registerError = `Registro exitoso, pero no se pudo iniciar sesión automáticamente: ${signInError.message}. Por favor, intenta iniciar sesión manualmente.`;
                 return;
             }
             currentUser = signInData.user;
             currentSession = signInData.session;
-            console.log('Resultado de signInWithPassword (contingencia):', signInData);
         }
 
         if (!currentUser || !currentSession) {
-          console.error('Fallo crítico: No se pudo establecer la sesión del usuario después del registro.');
           this.registerError = "Error interno: No se pudo establecer la sesión del usuario para completar el perfil. Por favor, inicia sesión manualmente.";
           return;
         }
 
-        console.log('Sesión activa y usuario obtenido:', currentUser, currentSession);
 
-        console.log('Intentando insertar perfil en tabla "usuarios" con ID:', currentUser.id);
-        const { data: profileData, error: profileError } = await supabase
+        const { error: profileError } = await supabase
             .from('usuarios')
             .insert({
               user_id: currentUser.id,
@@ -195,24 +186,19 @@ export default {
             .select();
 
         if (profileError) {
-          console.error('Error al insertar perfil en tabla "usuarios":', profileError);
           this.registerError = `Error al guardar perfil: ${profileError.message}. El usuario fue creado en autenticación, pero no en la tabla personalizada.`;
           return;
         }
 
-        console.log('Perfil insertado exitosamente en tabla "usuarios":', profileData);
         this.successMessage = "¡Cuenta creada y perfil guardado exitosamente!";
-        console.log('Redirigiendo a /productos...');
         setTimeout(() => {
           this.$router.push('/productos');
         }, 2000);
 
       } catch (generalError) {
-        console.error('Error inesperado en handleRegister:', generalError);
         this.registerError = `Error inesperado: ${generalError.message}`;
       } finally {
         this.isLoading = false;
-        console.log('--- Fin de registro ---');
       }
     }
   }

@@ -146,7 +146,6 @@ export default {
       // Or an external one: 'https://via.placeholder.com/60x60?text=No+Image';
 
       if (!filePath) {
-        console.warn("getSignedUrl (CarritoApp): filePath is empty. Returning default placeholder.");
         return defaultPlaceholder;
       }
       try {
@@ -155,12 +154,10 @@ export default {
           .createSignedUrl(filePath, 60); // 60 seconds expiry (adjust as needed)
 
         if (error) {
-          console.error('getSignedUrl (CarritoApp): Error obtaining signed URL for', filePath, ':', error.message);
           return defaultPlaceholder;
         }
         return data.signedUrl;
       } catch (error) {
-        console.error('getSignedUrl (CarritoApp): GENERAL error obtaining signed URL for', filePath, ':', error);
         return defaultPlaceholder;
       }
     },
@@ -219,7 +216,6 @@ export default {
           const productDetail = productsData.find(p => p.id_producto === cartItem.id_producto);
 
           if (!productDetail) {
-            console.warn(`Product with ID ${cartItem.id_producto} not found in 'productos' table.`);
             return null;
           }
 
@@ -243,7 +239,6 @@ export default {
 
       } catch (error) {
         this.errorMessage = "Error al cargar el carrito: " + error.message;
-        console.error("Error loading cart from DB:", error.message);
         this.cartItems = [];
         localStorage.removeItem("cart"); // Clear invalid local cache
       } finally {
@@ -282,11 +277,9 @@ export default {
           .eq('user_id', this.user.id); // Update all items for this user
 
         if (error) throw error;
-        // console.log("Delivery and payment details updated successfully in DB.");
         this.errorMessage = ""; // Clear any previous error messages
         return true; // Indicate success
       } catch (error) {
-        console.error("Error updating delivery/payment in DB:", error.message);
         this.errorMessage = "Error al guardar la información de entrega y pago.";
         return false; // Indicate failure
       }
@@ -331,7 +324,6 @@ export default {
         if (error) throw error;
         this.errorMessage = "";
       } catch (error) {
-        console.error("Error updating quantity in DB:", error.message);
         item.quantity -= 1; // Revert local change if DB update fails
         this.updateLocalStorage();
         this.errorMessage = "Error al actualizar la cantidad en la base de datos.";
@@ -356,7 +348,6 @@ export default {
           if (error) throw error;
           this.errorMessage = "";
         } catch (error) {
-          console.error("Error updating quantity in DB:", error.message);
           item.quantity += 1; // Revert local change if DB update fails
           this.updateLocalStorage();
           this.errorMessage = "Error al actualizar la cantidad en la base de datos.";
@@ -385,7 +376,6 @@ export default {
         if (error) throw error;
         this.errorMessage = "";
       } catch (error) {
-        console.error("Error deleting item from DB:", error.message);
         this.errorMessage = "Error al eliminar el producto de la base de datos. Por favor, recarga la página.";
         await this.loadCartFromDatabase();
       }
@@ -395,7 +385,6 @@ export default {
       try {
         localStorage.setItem("cart", JSON.stringify(this.cartItems));
       } catch (e) {
-        console.error("Error al guardar en localStorage:", e);
         this.errorMessage = "No se pudo actualizar el carrito localmente. Intenta de nuevo.";
       }
     },

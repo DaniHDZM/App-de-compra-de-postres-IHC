@@ -96,7 +96,6 @@ export default {
         await this.fetchUserCartFromDatabase();
       } else {
         this.isAuthenticated = false;
-        console.warn("User session found, but user object could not be retrieved. Redirecting to login.");
         this.$router.push('/auth');
       }
     }
@@ -106,13 +105,11 @@ export default {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
-          console.error("Error getting session:", error);
           this.isAuthenticated = false;
           return;
         }
         this.isAuthenticated = !!session;
       } catch (error) {
-        console.error("Error al verificar el estado de autenticación:", error);
         this.isAuthenticated = false;
       }
     },
@@ -157,7 +154,6 @@ export default {
 
       } catch (error) {
         this.productsError = "Error al cargar los productos. Por favor, inténtalo de nuevo más tarde.";
-        console.error('Error fetching products:', error.message, error);
       } finally {
         this.loadingProducts = false;
       }
@@ -173,7 +169,6 @@ export default {
 
     async getSignedUrl(filePath) {
       if (!filePath) {
-          console.warn("getSignedUrl (ProductosView): filePath is empty. Returning empty string.");
           return '';
       }
       try {
@@ -182,12 +177,10 @@ export default {
               .createSignedUrl(filePath, 60);
 
           if (error) {
-              console.error('getSignedUrl (ProductosView): Error obtaining signed URL for', filePath, ':', error.message);
               return '';
           }
           return data.signedUrl;
       } catch (error) {
-          console.error('getSignedUrl (ProductosView): GENERAL error obtaining signed URL for', filePath, ':', error);
           return '';
       }
     },
@@ -216,7 +209,6 @@ export default {
 
         localStorage.setItem("cart", JSON.stringify(this.cart));
       } catch (error) {
-        console.error("Error al cargar el carrito del usuario desde la DB:", error.message);
         this.cart = [];
         localStorage.removeItem("cart");
       }
@@ -279,7 +271,6 @@ export default {
           // alert(`${product.nombre} añadido a tu carrito.`); // Optional: Keep or remove
         }
       } catch (error) {
-        console.error("Error al actualizar/insertar el carrito en la DB:", error.message);
         // Rollback local cart changes if DB update fails
         if (existingProductInLocalCart) {
             existingProductInLocalCart.quantity -= 1;
@@ -307,13 +298,11 @@ export default {
           if (Array.isArray(parsedCart)) {
             this.cart = parsedCart;
           } else {
-            console.warn("Cart data in localStorage was not an array. Initializing empty cart.");
             this.cart = [];
             localStorage.removeItem("cart");
           }
         }
       } catch (e) {
-        console.error("Error loading cart from localStorage:", e);
         this.cart = [];
       }
     },
@@ -332,7 +321,6 @@ export default {
         this.productsError = null;
         this.$router.push('/');
       } catch (error) {
-        console.error("Error al cerrar sesión:", error.message);
         alert("Hubo un problema al cerrar sesión: " + error.message);
       }
     }

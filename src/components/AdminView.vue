@@ -145,7 +145,6 @@
           .single();
   
           if (error) {
-            console.error("Error al obtener el rol del usuario:", error);
             this.isAdmin = false;
             // Opcional: Redirigir si hay un error al obtener el rol
             this.$router.push('/'); 
@@ -154,12 +153,10 @@
   
           this.isAdmin = data.role === 'admin';
           if (!this.isAdmin) {
-              console.warn("Usuario no es administrador. Acceso denegado.");
               // Si no es admin, redirigir a una página no administrativa
               this.$router.push('/Productos'); 
           }
         } catch (error) {
-          console.error("Error general al comprobar el rol del usuario:", error);
           this.isAdmin = false;
           this.$router.push('/'); 
         }
@@ -189,7 +186,6 @@
   
         } catch (error) {
           this.productsError = 'Error al cargar productos: ' + error.message;
-          console.error('Error fetching products:', error);
         } finally {
           this.loadingProducts = false;
         }
@@ -205,12 +201,10 @@
                 .createSignedUrl(filePath, 60);
   
             if (error) {
-                console.error('Error al obtener URL firmada:', error);
                 return '';
             }
             return data.signedUrl;
         } catch (error) {
-            console.error('Error general al obtener URL firmada:', error);
             return '';
         }
       },
@@ -250,7 +244,6 @@
           return filePath;
   
         } catch (error) {
-          console.error('Error al subir imagen:', error);
           this.formError = 'Error al subir imagen: ' + error.message;
           return null;
         }
@@ -305,7 +298,6 @@
           this.fetchProducts();
         } catch (error) {
           this.formError = 'Error al guardar producto: ' + error.message;
-          console.error('Error saving product:', error);
         } finally {
           this.isLoading = false;
         }
@@ -357,7 +349,6 @@
           this.fetchProducts();
         } catch (error) {
           this.formError = 'Error al eliminar producto: ' + error.message;
-          console.error('Error deleting product:', error);
         } finally {
           this.isLoading = false;
         }
@@ -393,7 +384,6 @@
           // Redirigir a la página de inicio de sesión o a la página principal
           this.$router.push('/');
         } catch (error) {
-          console.error("Error al cerrar sesión:", error.message);
           alert("Hubo un problema al cerrar sesión: " + error.message);
         }
       }
