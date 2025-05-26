@@ -10,6 +10,16 @@
       </div>
     </header>
 
+    <div class="search-bar-container">
+        <input 
+            type="text" 
+            v-model="searchTerm" 
+            @input="debouncedFetchProducts" 
+            placeholder="Buscar productos por nombre o descripción..."
+            class="search-input"
+        />
+    </div>
+
     <p v-if="loadingProducts" class="info-message">Cargando productos...</p>
     <p v-if="productsError" class="error-message">{{ productsError }}</p>
     <p v-if="!loadingProducts && !productsError && products.length === 0" class="info-message">No hay productos disponibles en este momento.</p>
@@ -67,26 +77,27 @@ export default {
   data() {
     return {
       isAuthenticated: false,
-      user: null, // New: To store the current authenticated user
+      user: null,
       products: [],
-      cart: [], // Client-side cart (local cache)
+      cart: [],
       loadingProducts: false,
       productsError: null,
       isNavbarHidden: false,
+      searchTerm: '', // Nuevo: Para el término de búsqueda
+      searchTimeout: null, // Nuevo: Para el debounce
     };
   },
   async mounted() {
     await this.checkAuthStatus();
     if (this.isAuthenticated) {
-      await this.getCurrentUser(); // Fetch current user
+      await this.getCurrentUser();
       if (this.user) {
-        await this.fetchProducts(); // Fetch products (needs to be done before fetching cart to map product details)
-        await this.fetchUserCartFromDatabase(); // Fetch user's cart from DB
+        await this.fetchProducts();
+        await this.fetchUserCartFromDatabase();
       } else {
-        // If user is not obtained despite being authenticated, handle gracefully
         this.isAuthenticated = false;
         console.warn("User session found, but user object could not be retrieved. Redirecting to login.");
-        this.$router.push('/auth'); // Redirect to login if user object is missing
+        this.$router.push('/auth');
       }
     }
   },
@@ -113,10 +124,15 @@ export default {
       this.loadingProducts = true;
       this.productsError = null;
       try {
-        const { data, error } = await supabase
-          .from('productos')
-          .select('*')
-          .order('id_producto', { ascending: true });
+        let query = supabase.from('productos').select('*');
+
+        // Aplicar el filtro de búsqueda si searchTerm no está vacío
+        if (this.searchTerm) {
+            const searchPattern = `%${this.searchTerm}%`; // Para búsqueda "contiene"
+            query = query.or(`nombre.ilike.${searchPattern},descripcion.ilike.${searchPattern}`);
+        }
+
+        const { data, error } = await query.order('id_producto', { ascending: true });
 
         if (error) {
           throw error;
@@ -125,7 +141,7 @@ export default {
         this.products = await Promise.all(
           data.map(async (product) => {
             let signedUrl = '';
-            const originalFilePath = product.imagen; // This is the raw path from DB
+            const originalFilePath = product.imagen;
 
             if (originalFilePath) {
               signedUrl = await this.getSignedUrl(originalFilePath);
@@ -133,8 +149,8 @@ export default {
 
             return {
               ...product,
-              imagen: signedUrl, // For displaying in ProductosView
-              original_imagen_path: originalFilePath // For saving to cart DB/localStorage
+              imagen: signedUrl,
+              original_imagen_path: originalFilePath
             };
           })
         );
@@ -147,6 +163,14 @@ export default {
       }
     },
 
+    // Nuevo método para el "debounce"
+    debouncedFetchProducts() {
+        clearTimeout(this.searchTimeout);
+        this.searchTimeout = setTimeout(() => {
+            this.fetchProducts();
+        }, 300); // Espera 300ms después de que el usuario deja de escribir
+    },
+
     async getSignedUrl(filePath) {
       if (!filePath) {
           console.warn("getSignedUrl (ProductosView): filePath is empty. Returning empty string.");
@@ -154,8 +178,8 @@ export default {
       }
       try {
           const { data, error } = await supabase.storage
-              .from('product-images') // <<-- VERIFY THIS BUCKET NAME IS CORRECT
-              .createSignedUrl(filePath, 60); // 60 seconds expiry (adjust as needed)
+              .from('product-images')
+              .createSignedUrl(filePath, 60);
 
           if (error) {
               console.error('getSignedUrl (ProductosView): Error obtaining signed URL for', filePath, ':', error.message);
@@ -230,7 +254,7 @@ export default {
           .eq('id_producto', product.id_producto)
           .single();
 
-        if (fetchError && fetchError.code !== 'PGRST116') {
+        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means "no rows found"
           throw fetchError;
         }
 
@@ -241,7 +265,7 @@ export default {
             .eq('id_carrito', existingCartItem.id_carrito);
 
           if (updateError) throw updateError;
-          alert(`${product.nombre} actualizado en tu carrito.`);
+          // alert(`${product.nombre} actualizado en tu carrito.`); // Optional: Keep or remove
         } else {
           const { error: insertError } = await supabase
             .from('carritos')
@@ -252,10 +276,11 @@ export default {
             });
 
           if (insertError) throw insertError;
-          alert(`${product.nombre} añadido a tu carrito.`);
+          // alert(`${product.nombre} añadido a tu carrito.`); // Optional: Keep or remove
         }
       } catch (error) {
         console.error("Error al actualizar/insertar el carrito en la DB:", error.message);
+        // Rollback local cart changes if DB update fails
         if (existingProductInLocalCart) {
             existingProductInLocalCart.quantity -= 1;
             if (existingProductInLocalCart.quantity === 0) {
@@ -274,7 +299,6 @@ export default {
     goToUltimoPedido() {
       this.$router.push("/UltimoPedido");
     },
-    // This is now primarily used for initial local cache loading
     loadCartFromLocalStorage() {
       try {
         const storedCart = localStorage.getItem("cart");
@@ -299,15 +323,13 @@ export default {
         if (error) {
           throw error;
         }
-        // Clear local storage data relevant to the user/cart
         localStorage.removeItem('cart');
-        // Reset component state
+        localStorage.removeItem('orderHistory'); // Clear order history as well
         this.isAuthenticated = false;
         this.user = null;
         this.products = [];
         this.cart = [];
         this.productsError = null;
-        // Redirect to login or home page
         this.$router.push('/');
       } catch (error) {
         console.error("Error al cerrar sesión:", error.message);
@@ -319,7 +341,7 @@ export default {
 </script>
 
 <style scoped>
-/* Your existing CSS styles from ProductosView.vue */
+/* Tus estilos existentes de ProductosView.vue */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -335,19 +357,19 @@ export default {
 .navbar-title {
   font-size: 24px;
   font-weight: bold;
-  margin-right: auto; /* Pushes the logo and buttons to the right */
+  margin-right: auto;
 }
 
 .navbar-logo {
   width: 150px;
   height: 150px;
   border-radius: 50%;
-  margin: 0 auto; /* Centers the logo when no margin-right auto is on title */
+  margin: 0 auto;
 }
 
 .navbar-buttons {
   display: flex;
-  gap: 10px; /* Space between buttons */
+  gap: 10px;
   align-items: center;
 }
 
@@ -363,13 +385,37 @@ export default {
 }
 
 .logoutBtn {
-  background-color: #dc3545; /* A distinct color for logout */
+  background-color: #dc3545;
 }
 
 .logoutBtn:hover {
   opacity: 0.8;
   background-color: #c82333;
 }
+
+/* Nuevos estilos para el buscador */
+.search-bar-container {
+    text-align: center;
+    margin: 20px auto;
+    max-width: 600px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 25px; /* Bordes redondeados */
+    font-size: 16px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    border-color: #8a2be2; /* Un color morado para el foco */
+    box-shadow: 0 0 8px rgba(138, 43, 226, 0.2);
+    outline: none;
+}
+
 
 /* Estilos de tabla y otros */
 table {
@@ -496,17 +542,22 @@ h1, h2 {
   }
 
   .navbar-buttons {
-    flex-direction: column; /* Stack buttons vertically on small screens */
+    flex-direction: column;
     gap: 5px;
-    width: 100%; /* Make buttons take full width */
+    width: 100%;
     margin-top: 10px;
   }
 
   .goToCartBtn, .logoutBtn {
     font-size: 14px;
     padding: 6px 12px;
-    margin: 0; /* Remove horizontal margin */
-    width: 100%; /* Make buttons full width */
+    margin: 0;
+    width: 100%;
+  }
+
+  .search-input {
+      width: calc(100% - 20px); /* Ajusta para padding */
+      margin: 10px; /* Añade margen en pantallas pequeñas */
   }
 
   table, tbody, tr, th, td {
