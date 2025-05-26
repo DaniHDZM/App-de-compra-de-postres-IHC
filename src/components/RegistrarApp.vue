@@ -14,19 +14,28 @@
 
       <div class="form-group">
         <label for="password">Contraseña</label>
-        <input type="password" id="password" v-model="password" required>
+        <input type="password" id="password" v-model="password" required @input="validatePassword">
+        <small class="password-requirements">
+          La contraseña debe tener:
+          <ul>
+            <li :class="{ 'valid-requirement': password.length >= 8 }">Mínimo 8 caracteres</li>
+            <li :class="{ 'valid-requirement': /[A-Z]/.test(password) }">Al menos una mayúscula</li>
+            <li :class="{ 'valid-requirement': /[0-9]/.test(password) }">Al menos un número</li>
+            <li :class="{ 'valid-requirement': /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/.test(password) }">Al menos un carácter especial</li>
+          </ul>
+        </small>
       </div>
       
       <div class="form-group">
         <label for="passwordRepeat">Confirmar contraseña</label>
-        <input type="password" id="passwordRepeat" v-model="passwordRepeat" required>
+        <input type="password" id="passwordRepeat" v-model="passwordRepeat" required @input="validatePassword">
       </div>
 
       <p v-if="passwordError" class="error-message">{{ passwordError }}</p>
       <p v-if="registerError" class="error-message">{{ registerError }}</p>
       <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
 
-      <button type="submit" :disabled="isLoading">
+      <button type="submit" :disabled="isLoading || !isPasswordValid || password !== passwordRepeat">
         {{ isLoading ? 'Registrando...' : 'Crear cuenta' }}
       </button>
       <button type="button" @click="goToSignIn" :disabled="isLoading" class="secondary-button">
@@ -37,7 +46,6 @@
 </template>
 
 <script>
-// Asegúrate de que la ruta a tu cliente Supabase sea correcta
 import { supabase } from '@/supabase';
 
 export default {
@@ -45,52 +53,80 @@ export default {
   data() {
     return {
       email: '',
-      nombre: '', // Nuevo campo para el nombre del usuario
+      nombre: '',
       password: '',
       passwordRepeat: '',
-      passwordError: '', // Errores de validación de contraseña
-      registerError: '', // Errores de Supabase Auth o inserción de perfil
+      passwordError: '',
+      registerError: '',
       successMessage: '',
-      isLoading: false
+      isLoading: false,
+      isPasswordValid: false, // Nuevo: para controlar el estado de validación de la contraseña
     };
   },
   methods: {
     goToSignIn() {
-      // Asume que tienes una ruta a tu componente de inicio de sesión
       this.$router.push('/');  
     },
     
+    validatePassword() {
+      this.passwordError = ''; // Limpiar errores previos
+
+      const p = this.password;
+      let isValid = true;
+      const requirements = [];
+
+      if (p.length < 8) {
+        isValid = false;
+        requirements.push("La contraseña debe tener al menos 8 caracteres.");
+      }
+      if (!/[A-Z]/.test(p)) {
+        isValid = false;
+        requirements.push("La contraseña debe contener al menos una letra mayúscula.");
+      }
+      if (!/[0-9]/.test(p)) {
+        isValid = false;
+        requirements.push("La contraseña debe contener al menos un número.");
+      }
+      // Esta regex cubre una amplia gama de caracteres especiales comunes
+      if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/.test(p)) {
+        isValid = false;
+        requirements.push("La contraseña debe contener al menos un carácter especial.");
+      }
+
+      if (p !== this.passwordRepeat && this.passwordRepeat !== '') {
+        isValid = false;
+        requirements.push("Las contraseñas no coinciden.");
+      }
+
+      if (requirements.length > 0) {
+        this.passwordError = requirements.join(' '); // Unir todos los mensajes de error
+      } else {
+        this.passwordError = '';
+      }
+
+      this.isPasswordValid = isValid && (p === this.passwordRepeat); // Asegurar que las contraseñas coincidan
+    },
+
     async handleRegister() {
-      // Limpiar mensajes y activar estado de carga
       this.passwordError = '';
       this.registerError = '';
       this.successMessage = '';
       this.isLoading = true;
 
+      // Volver a validar la contraseña antes de enviar
+      this.validatePassword();
+      if (!this.isPasswordValid) {
+        this.isLoading = false;
+        return;
+      }
+      
       try {
-        // --- Validaciones iniciales del formulario ---
-        if (this.password !== this.passwordRepeat) {
-          this.passwordError = "Las contraseñas no coinciden.";
-          return;
-        }
-        if (this.password.length < 6) {
-          this.passwordError = "La contraseña debe tener al menos 6 caracteres.";
-          return;
-        }
-
         console.log('--- Inicio de registro ---');
         console.log('Intentando crear usuario en Supabase Auth con email:', this.email);
 
-        // --- Paso 1: Registrar usuario en Supabase Authentication ---
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: this.email,
           password: this.password,
-          // Puedes añadir opciones adicionales como data (metadata de usuario) aquí si lo necesitas
-          // options: {
-          //   data: {
-          //     full_name: this.nombre // Puedes pasar el nombre aquí si lo quieres en auth.users.raw_user_meta_data
-          //   }
-          // }
         });
 
         if (signUpError) {
@@ -100,7 +136,7 @@ export default {
           } else {
             this.registerError = `Error al registrar: ${signUpError.message}`;
           }
-          return; // Salir si hay error en el registro de autenticación
+          return;
         }
 
         console.log('Resultado de signUp:', signUpData);
@@ -108,11 +144,6 @@ export default {
         let currentUser = signUpData.user;
         let currentSession = signUpData.session;
 
-        // --- Lógica de Contingencia: Forzar sesión si no se obtuvo directamente (tu caso común) ---
-        // Esto es útil si tu configuración de Supabase está configurada para requerir confirmación por email
-        // y por lo tanto, signUp no inicia automáticamente la sesión.
-        // Si no tienes confirmación por email y quieres que la sesión inicie inmediatamente,
-        // esto es aún una buena medida de seguridad para asegurar que el usuario está logueado.
         if (!currentSession && currentUser) { 
             console.warn('Advertencia: Sesión nula después de signUp pero usuario creado. Intentando signInWithPassword para asegurar sesión activa...');
             const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
@@ -130,7 +161,6 @@ export default {
             console.log('Resultado de signInWithPassword (contingencia):', signInData);
         }
 
-        // --- Verificación final de que tenemos un usuario y una sesión válidos ---
         if (!currentUser || !currentSession) {
           console.error('Fallo crítico: No se pudo establecer la sesión del usuario después del registro.');
           this.registerError = "Error interno: No se pudo establecer la sesión del usuario para completar el perfil. Por favor, inicia sesión manualmente.";
@@ -139,24 +169,20 @@ export default {
 
         console.log('Sesión activa y usuario obtenido:', currentUser, currentSession);
 
-        // --- Paso 2: Insertar perfil en la tabla 'usuarios' ---
-        // Asegúrate de que las columnas aquí coincidan exactamente con tu tabla 'usuarios'
         console.log('Intentando insertar perfil en tabla "usuarios" con ID:', currentUser.id);
         const { data: profileData, error: profileError } = await supabase
             .from('usuarios')
             .insert({
-              user_id: currentUser.id, // <-- Asegúrate de que esto inserte en la columna 'user_id'
+              user_id: currentUser.id,
               nombre: this.nombre,
               correo: this.email,
-              role: 'User' // O el rol por defecto que quieras asignar
+              role: 'User'
             })
             .select();
 
         if (profileError) {
           console.error('Error al insertar perfil en tabla "usuarios":', profileError);
           this.registerError = `Error al guardar perfil: ${profileError.message}. El usuario fue creado en autenticación, pero no en la tabla personalizada.`;
-          // Opcional: Si el perfil falla, puedes intentar eliminar el usuario de Supabase Auth para evitar huérfanos.
-          // Esto puede ser complejo y debe hacerse con cuidado, ya que el usuario podría haber confirmado el correo.
           return;
         }
 
@@ -164,14 +190,14 @@ export default {
         this.successMessage = "¡Cuenta creada y perfil guardado exitosamente!";
         console.log('Redirigiendo a /productos...');
         setTimeout(() => {
-          this.$router.push('/productos'); // Redirigir al usuario
+          this.$router.push('/productos');
         }, 2000);
 
       } catch (generalError) {
         console.error('Error inesperado en handleRegister:', generalError);
         this.registerError = `Error inesperado: ${generalError.message}`;
       } finally {
-        this.isLoading = false; // Finalizar estado de carga
+        this.isLoading = false;
         console.log('--- Fin de registro ---');
       }
     }
@@ -180,7 +206,6 @@ export default {
 </script>
 
 <style scoped>
-/* Tus estilos CSS aquí, sin cambios. */
 .register-container {
   max-width: 400px;
   margin: 50px auto;
@@ -209,7 +234,7 @@ label {
 }
 
 input[type="email"],
-input[type="text"], /* Added type="text" for the name input */
+input[type="text"],
 input[type="password"] {
   width: calc(100% - 20px);
   padding: 10px;
@@ -264,5 +289,28 @@ button[type="submit"]:disabled {
   margin-top: 10px;
   font-size: 0.9em;
   text-align: center;
+}
+
+/* Nuevos estilos para los requisitos de contraseña */
+.password-requirements {
+  font-size: 0.85em;
+  color: #666;
+  margin-top: 5px;
+  text-align: left;
+}
+
+.password-requirements ul {
+  list-style: none; /* Quita los puntos de la lista */
+  padding-left: 0;
+  margin-top: 5px;
+}
+
+.password-requirements li {
+  margin-bottom: 3px;
+  color: #dc3545; /* Rojo por defecto si no cumple */
+}
+
+.password-requirements li.valid-requirement {
+  color: #28a745; /* Verde si cumple el requisito */
 }
 </style>
