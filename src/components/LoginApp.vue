@@ -1,7 +1,6 @@
 <template>
   <div class="Bar">
     <h1>Inicia sesión</h1>
-    
     <img src="../imagenes/CESARS BAKERY.png" alt="Avatar" class="avatar">
   </div>
   <form @submit.prevent="handleLogin">
@@ -12,66 +11,99 @@
       <label for="psw"><b>Password</b></label>
       <input type="password" placeholder="Enter Password" name="psw" v-model="password" required>
 
-      <label>
-        <input type="checkbox" v-model="rememberMe"> Recuérdame
-      </label>
+      <p v-if="loginError" class="error-message">{{ loginError }}</p>
 
       <div class="clearfix">
         <button type="button" class="cancelbtn" @click="goToRegister">Ir a registrarse</button>
-        <button type="submit" class="signupbtn">Iniciar Sesión</button>
+        <button type="submit" class="signupbtn" :disabled="isLoading">
+          {{ isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
+        </button>
       </div>
     </div>
   </form>
 </template>
 
 <script>
+import { supabase } from '../supabase'
+
 export default {
   name: 'LoginApp',
   data() {
     return {
       email: '',
       password: '',
-      rememberMe: false, // Estado del checkbox
+      loginError: '',
+      isLoading: false
     };
-  },
-  mounted() {
-    // Recupera el email y contraseña de localStorage si el usuario marcó "Recuérdame"
-    if (localStorage.getItem('rememberMe') === 'true') {
-      this.email = localStorage.getItem('email') || '';
-      this.password = localStorage.getItem('password') || '';
-      this.rememberMe = true;
-    }
   },
   methods: {
     goToRegister() {
       this.$router.push('/RegistrarApp');
     },
-    handleLogin() {
-      // Verifica si "Recuérdame" está marcado y guarda o limpia datos según corresponda
-      if (this.rememberMe) {
-        localStorage.setItem('email', this.email);
-        localStorage.setItem('password', this.password);
-        localStorage.setItem('rememberMe', true);
-      } else {
-        localStorage.removeItem('email');
-        localStorage.removeItem('password');
-        localStorage.setItem('rememberMe', false);
-      }
+    async handleLogin() {
+      this.loginError = '';
+      this.isLoading = true;
 
-      // Simulación de autenticación exitosa
-      this.$router.push('/productos');
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: this.email,
+          password: this.password
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        const user = data.user;
+
+        if (user) {
+          // MODIFICACIÓN CRÍTICA AQUÍ: Cambia 'id' por 'user_id'
+          const { data: profileData, error: profileError } = await supabase
+            .from('usuarios')
+            .select('role')
+            .eq('user_id', user.id) // <--- CAMBIADO DE 'id' A 'user_id'
+            .single();
+
+          if (profileError) {
+            console.error("Error fetching user role:", profileError.message);
+            this.loginError = 'Error al obtener el rol del usuario. Intenta de nuevo.';
+            // Still redirect to products as a fallback if role can't be determined
+            this.$router.push('/Productos');
+            return;
+          }
+
+          if (profileData && profileData.role === 'admin') {
+            this.$router.push('/Admin');
+          } else {
+            this.$router.push('/Productos');
+          }
+        } else {
+          this.loginError = 'No se pudo obtener la información del usuario. Intenta de nuevo.';
+        }
+
+      } catch (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          this.loginError = 'Credenciales inválidas. Por favor, verifica tu email y contraseña.';
+        } else if (error.message.includes('Email not confirmed')) {
+          this.loginError = 'Por favor, confirma tu correo electrónico antes de iniciar sesión.';
+        } else {
+          this.loginError = 'Error al iniciar sesión: ' + error.message;
+        }
+        console.error('Login error:', error);
+      } finally {
+        this.isLoading = false;
+      }
     }
   }
 };
 </script>
 
 <style scoped>
-  /* Bordered form */
+  /* Existing styles are kept */
   form {
     border: 3px solid #f1f1f1;
   }
 
-  /* Full-width inputs */
   input[type=email], input[type=password] {
     width: 100%;
     padding: 12px 20px;
@@ -81,7 +113,6 @@ export default {
     box-sizing: border-box;
   }
 
-  /* Set a style for all buttons */
   button {
     background-color: #04AA6D;
     color: white;
@@ -92,9 +123,14 @@ export default {
     width: 100%;
   }
 
-  /* Add a hover effect for buttons */
   button:hover {
     opacity: 0.8;
+  }
+
+  button:disabled { /* Style for disabled button */
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #a0a0a0;
   }
 
   .cancelbtn {
@@ -102,13 +138,11 @@ export default {
     background-color: #f44336;
   }
 
-  /* Extra style for the cancel button (red) */
   .cancelbtn, .signupbtn {
     float: left;
     width: 50%;
   }
 
-  /* Center the avatar image inside this container */
   .Bar {
     display: flex;
     justify-content: space-between;
@@ -118,28 +152,22 @@ export default {
     background-color: #800080;
   }
 
-  /* Título centrado verticalmente */
-
   h1 {
     margin-left: 20px;
     color: #f1f1f1;
   }
 
-
-  /* Avatar image */
   img.avatar {
-    width: 150px; /* Tamaño de la imagen */
+    width: 150px;
     height: 150px;
     border-radius: 50%;
     margin-right: 20px;
   }
 
-  /* Add padding to containers */
   .container {
     padding: 16px;
   }
 
-  /* The "Forgot password" text */
   span.psw {
     float: right;
     padding-top: 16px;
@@ -151,15 +179,21 @@ export default {
     display: table;
   }
 
-  /* Change styles for span and cancel button on extra small screens */
+  .error-message { /* Style for error message */
+    color: #dc3545;
+    margin-top: 10px;
+    text-align: center;
+    font-size: 0.9em;
+  }
+
   @media screen and (max-width: 500px) {
     span.psw {
       display: block;
       float: none;
     }
     img.avatar {
-    width: 50px;
-    height: auto;
+      width: 50px;
+      height: auto;
     }
   }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="order-confirmation">
+  <div class="order-confirmation" v-if="isAuthenticated">
     <div class="thank-you-alert">
       <span class="check-icon">✔️</span>
       <p>¡Gracias por tu compra!</p>
@@ -23,7 +23,6 @@
       <p class="total">Total: {{ formatPrice(totalPrice) }}</p>
     </div>
 
-    <!-- Lugar de envío -->
     <div class="shipping-info">
       <h4>Envío a:</h4>
       <p>{{ selectedFacultadCampus }}</p>
@@ -35,13 +34,19 @@
       <img src="../imagenes/CESARS BAKERY.png" alt="Logo" />
     </div>
   </div>
+  <div v-else class="access-denied">
+    <p>Necesitas iniciar sesión para ver los detalles de tu pedido.</p>
+    <button @click="$router.push('/auth')" class="secondary-button">Iniciar Sesión</button>
+  </div>
 </template>
 
 <script>
+import { supabase } from '@/supabase';
 export default {
   data() {
     return {
-      cartItems: [], // Inicialmente vacío, se llenará con los datos de localStorage
+      isAuthenticated: false, // New: To track authentication status
+      cartItems: [],
       selectedFacultadCampus:
         localStorage.getItem("selectedFacultadCampus") || "No seleccionado",
     };
@@ -84,9 +89,30 @@ export default {
       localStorage.removeItem("cart");
       this.cartItems = [];
     },
+    async checkAuthStatus() {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error("Error getting session:", error);
+          this.isAuthenticated = false;
+          return;
+        }
+        this.isAuthenticated = !!session; // Sets true if session exists, false otherwise
+        if (!this.isAuthenticated) {
+          this.$router.push('/'); // Redirect to login if not authenticated
+        }
+      } catch (error) {
+        console.error("Error al verificar el estado de autenticación:", error);
+        this.isAuthenticated = false;
+        this.$router.push('/'); // Redirect on general error
+      }
+    },
   },
-  mounted() {
-    this.loadCartFromLocalStorage();
+  async mounted() {
+    await this.checkAuthStatus(); // Check authentication status first
+    if (this.isAuthenticated) {
+      this.loadCartFromLocalStorage();
+    }
   },
 };
 </script>
@@ -165,5 +191,31 @@ export default {
 .logo-space img {
   width: 100px;
   height: auto;
+}
+
+/* Styles for access denied message */
+.access-denied {
+  text-align: center;
+  padding: 30px;
+  background-color: #ffe0e0;
+  border: 1px solid #dc3545;
+  border-radius: 5px;
+  color: #dc3545;
+  margin-top: 30px;
+}
+
+.access-denied button {
+  margin-top: 20px;
+  background-color: #6c757d; /* secondary button style */
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+.access-denied button:hover {
+  background-color: #5a6268;
 }
 </style>

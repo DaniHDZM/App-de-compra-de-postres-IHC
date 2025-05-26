@@ -3,11 +3,18 @@
     <header :class="['navbar', { 'navbar-hidden': isNavbarHidden }]">
       <h1 class="navbar-title">CÉSAR'S BAKERY</h1>
       <img src="../imagenes/CESARS BAKERY.png" alt="Logo" class="navbar-logo" />
-      <button class="goToCartBtn" @click="goToUltimoPedido">Ultimo pedido</button>
-      <button class="goToCartBtn" @click="goToCart">Ir al Carrito</button>
-
+      <div class="navbar-buttons">
+        <button class="goToCartBtn" @click="goToUltimoPedido">Ultimo pedido</button>
+        <button class="goToCartBtn" @click="goToCart">Ir al Carrito</button>
+        <button class="logoutBtn" @click="handleLogout">Cerrar Sesión</button>
+      </div>
     </header>
-    <table>
+
+    <p v-if="loadingProducts" class="info-message">Cargando productos...</p>
+    <p v-if="productsError" class="error-message">{{ productsError }}</p>
+    <p v-if="!loadingProducts && !productsError && products.length === 0" class="info-message">No hay productos disponibles en este momento.</p>
+
+    <table v-if="!loadingProducts && !productsError && products.length > 0">
       <thead>
         <tr>
           <th><h2>NOMBRE</h2></th>
@@ -18,22 +25,24 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="product in products" :key="product.id">
+        <tr v-for="product in products" :key="product.id_producto">
           <td>
-            <h1>{{ product.name }}</h1>
+            <h1>{{ product.nombre }}</h1>
           </td>
           <td>
-            <h1>{{ product.description }}</h1>
+            <h1>{{ product.descripcion }}</h1>
           </td>
           <td>
-            <h1>${{ product.price }}</h1>
+            <h1>${{ product.precio }}</h1>
           </td>
           <td>
             <img
-              :src="product.imageUrl"
+              v-if="product.imagen"
+              :src="product.imagen"
               alt="Imagen del producto"
               class="product-image"
             />
+            <span v-else>Sin imagen</span>
           </td>
           <td>
             <button class="addBtn" @click="addToCart(product)">
@@ -44,104 +53,273 @@
       </tbody>
     </table>
   </div>
+  <div v-else class="access-denied">
+    <p>Necesitas iniciar sesión para ver los productos.</p>
+    <button @click="$router.push('/')" class="secondary-button">Iniciar Sesión</button>
+  </div>
 </template>
 
 <script>
+import { supabase } from '@/supabase';
+
 export default {
   name: "ProductosView",
   data() {
     return {
-      isAuthenticated: true,
-      products: [
-        {
-          id: 1,
-          name: "Brownie",
-          description:
-            "Un clásico, chocolatoso con un toque de nuez. Ideal para los amantes del chocolate",
-          price: 20.0,
-          imageUrl:
-            "https://th.bing.com/th/id/OIP.VBfpmhSapiPrlGt2PDlu6wHaGL?w=900&h=750&rs=1&pid=ImgDetMain",
-        },
-        {
-          id: 2,
-          name: "Galletas con Chispas",
-          description:
-            "Galletas suaves y crujientes con chispas de chocolate, perfectas para un antojo dulce en cualquier momento.",
-          price: 15.0,
-          imageUrl:
-            "https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcQ8P1Cc8rE8xt5RnaStEUNNWF7de1-eIpMaZwpz5ytPIkamaV6G8I9FiSlP1Y1iK64CQu4mJhha9YMzaCM-Z-Tf19NQnqMe77RZK3Lz9F0GEB8VEnpiL3zu&usqp=CAE",
-        },
-        {
-          id: 3,
-          name: "Galletas de Avena",
-          description:
-            "Una opción deliciosa y más saludable, con avena y un toque de canela. Perfectas para una energía extra.",
-          price: 15.0,
-          imageUrl:
-            "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcSzBv-YHDEFUIH_02Jwi-0bS5Sf9CvmgER1NA6vUkEhnX01P0rHR6wlWh7HlzMmXpaUO67LCTXk8AbMaW0Asv_5G5SEDhBw4eCdjG3bwGE&usqp=CAE ",
-        },
-        {
-          id: 4,
-          name: "Cupcake de chocolate",
-          description:
-            "Cupcakes esponjosos en sabor de chocolate, decorados con un toque de crema. Dulce y divertido",
-          price: 18.0,
-          imageUrl:
-            "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcSK3FyG6ZS307Kn0nyJhoRdWgtdoaLcY-KgoRqeOsWdDoORj7G8nPj4AH1vQEQQJN_BzFgl6h5wU2QVjzPaN8fewkJvX65Ny2ce41Fw_4VITSnCs2lXTEOlBqU&usqp=CAE ",
-        },
-        {
-          id: 5,
-          name: "Pay de Queso",
-          description:
-            "Suave y cremoso cheesecake con una base de galleta. Disponible en sabores tradicionales como fresa y mango.",
-          price: 25.0,
-          imageUrl:
-            "https://cdn.shopify.com/s/files/1/0360/9813/products/Pay_de_Queso_2019_Rebanada_copy_grande.jpg?v=1573082909",
-        },
-        {
-          id: 5,
-          name: "Rol de canela",
-          description:
-            "Suave y esponjoso rol de canela cubierto con un glaseado dulce. Un favorito reconfortante para cualquier momento.",
-          price: 45.0,
-          imageUrl:
-            "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcRgpEE_ROxEGTKRdiTyhXxRrt-nVjtFy91H9WhjM3VlbHyHuCMCNasWxm_zalFzBvtnmiBqS4LMEuISQZW5Cs6lyKJ6lxN0-dXdcAoSi5HfPT17EPNynWW1UQ&usqp=CAE ",
-        },
-      ],
-      cart: [],
+      isAuthenticated: false,
+      user: null, // New: To store the current authenticated user
+      products: [],
+      cart: [], // Client-side cart (local cache)
+      loadingProducts: false,
+      productsError: null,
+      isNavbarHidden: false,
     };
   },
-  methods: {
-    addToCart(product) {
-      const existingProduct = this.cart.find((item) => item.id === product.id);
-      if (existingProduct) {
-        existingProduct.quantity += 1;
+  async mounted() {
+    await this.checkAuthStatus();
+    if (this.isAuthenticated) {
+      await this.getCurrentUser(); // Fetch current user
+      if (this.user) {
+        await this.fetchProducts(); // Fetch products (needs to be done before fetching cart to map product details)
+        await this.fetchUserCartFromDatabase(); // Fetch user's cart from DB
       } else {
-        this.cart.push({ ...product, quantity: 1 });
+        // If user is not obtained despite being authenticated, handle gracefully
+        this.isAuthenticated = false;
+        console.warn("User session found, but user object could not be retrieved. Redirecting to login.");
+        this.$router.push('/auth'); // Redirect to login if user object is missing
+      }
+    }
+  },
+  methods: {
+    async checkAuthStatus() {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error("Error getting session:", error);
+          this.isAuthenticated = false;
+          return;
+        }
+        this.isAuthenticated = !!session;
+      } catch (error) {
+        console.error("Error al verificar el estado de autenticación:", error);
+        this.isAuthenticated = false;
+      }
+    },
+    async getCurrentUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      this.user = user;
+    },
+    async fetchProducts() {
+      this.loadingProducts = true;
+      this.productsError = null;
+      try {
+        const { data, error } = await supabase
+          .from('productos')
+          .select('*')
+          .order('id_producto', { ascending: true });
+
+        if (error) {
+          throw error;
+        }
+
+        this.products = await Promise.all(
+          data.map(async (product) => {
+            let signedUrl = '';
+            const originalFilePath = product.imagen; // This is the raw path from DB
+
+            if (originalFilePath) {
+              signedUrl = await this.getSignedUrl(originalFilePath);
+            }
+
+            return {
+              ...product,
+              imagen: signedUrl, // For displaying in ProductosView
+              original_imagen_path: originalFilePath // For saving to cart DB/localStorage
+            };
+          })
+        );
+
+      } catch (error) {
+        this.productsError = "Error al cargar los productos. Por favor, inténtalo de nuevo más tarde.";
+        console.error('Error fetching products:', error.message, error);
+      } finally {
+        this.loadingProducts = false;
+      }
+    },
+
+    async getSignedUrl(filePath) {
+      if (!filePath) {
+          console.warn("getSignedUrl (ProductosView): filePath is empty. Returning empty string.");
+          return '';
+      }
+      try {
+          const { data, error } = await supabase.storage
+              .from('product-images') // <<-- VERIFY THIS BUCKET NAME IS CORRECT
+              .createSignedUrl(filePath, 60); // 60 seconds expiry (adjust as needed)
+
+          if (error) {
+              console.error('getSignedUrl (ProductosView): Error obtaining signed URL for', filePath, ':', error.message);
+              return '';
+          }
+          return data.signedUrl;
+      } catch (error) {
+          console.error('getSignedUrl (ProductosView): GENERAL error obtaining signed URL for', filePath, ':', error);
+          return '';
+      }
+    },
+
+    async fetchUserCartFromDatabase() {
+      if (!this.user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('carritos')
+          .select('id_producto, cantidad')
+          .eq('user_id', this.user.id);
+
+        if (error) throw error;
+
+        this.cart = data.map(item => {
+          const productDetail = this.products.find(p => p.id_producto === item.id_producto);
+          return {
+            id_producto: item.id_producto,
+            quantity: item.cantidad,
+            name: productDetail?.nombre || 'Producto desconocido',
+            price: productDetail?.precio || 0,
+            imagen: productDetail?.original_imagen_path || ''
+          };
+        }).filter(item => item !== null);
+
+        localStorage.setItem("cart", JSON.stringify(this.cart));
+      } catch (error) {
+        console.error("Error al cargar el carrito del usuario desde la DB:", error.message);
+        this.cart = [];
+        localStorage.removeItem("cart");
+      }
+    },
+
+    async addToCart(product) {
+      if (!this.user) {
+        alert('Debes iniciar sesión para añadir productos al carrito.');
+        this.$router.push('/auth');
+        return;
+      }
+
+      let quantityToUpdate = 1;
+      const existingProductInLocalCart = this.cart.find((item) => item.id_producto === product.id_producto);
+      if (existingProductInLocalCart) {
+        existingProductInLocalCart.quantity += 1;
+        quantityToUpdate = existingProductInLocalCart.quantity;
+      } else {
+        this.cart.push({
+          id_producto: product.id_producto,
+          name: product.nombre,
+          description: product.descripcion,
+          price: product.precio,
+          imagen: product.original_imagen_path,
+          quantity: 1
+        });
       }
       localStorage.setItem("cart", JSON.stringify(this.cart));
+
+      try {
+        const { data: existingCartItem, error: fetchError } = await supabase
+          .from('carritos')
+          .select('id_carrito, cantidad')
+          .eq('user_id', this.user.id)
+          .eq('id_producto', product.id_producto)
+          .single();
+
+        if (fetchError && fetchError.code !== 'PGRST116') {
+          throw fetchError;
+        }
+
+        if (existingCartItem) {
+          const { error: updateError } = await supabase
+            .from('carritos')
+            .update({ cantidad: quantityToUpdate })
+            .eq('id_carrito', existingCartItem.id_carrito);
+
+          if (updateError) throw updateError;
+          alert(`${product.nombre} actualizado en tu carrito.`);
+        } else {
+          const { error: insertError } = await supabase
+            .from('carritos')
+            .insert({
+              user_id: this.user.id,
+              id_producto: product.id_producto,
+              cantidad: 1
+            });
+
+          if (insertError) throw insertError;
+          alert(`${product.nombre} añadido a tu carrito.`);
+        }
+      } catch (error) {
+        console.error("Error al actualizar/insertar el carrito en la DB:", error.message);
+        if (existingProductInLocalCart) {
+            existingProductInLocalCart.quantity -= 1;
+            if (existingProductInLocalCart.quantity === 0) {
+                this.cart = this.cart.filter(item => item.id_producto !== product.id_producto);
+            }
+        } else {
+            this.cart = this.cart.filter(item => item.id_producto !== product.id_producto);
+        }
+        localStorage.setItem("cart", JSON.stringify(this.cart));
+        alert("Hubo un problema al guardar el producto en tu carrito en la base de datos.");
+      }
     },
     goToCart() {
       this.$router.push("/carrito");
     },
     goToUltimoPedido() {
-      this.$router.push("/UltimoPedido")
+      this.$router.push("/UltimoPedido");
     },
+    // This is now primarily used for initial local cache loading
     loadCartFromLocalStorage() {
-      const storedCart = localStorage.getItem("cart");
-      if (storedCart) {
-        this.cart = JSON.parse(storedCart);
+      try {
+        const storedCart = localStorage.getItem("cart");
+        if (storedCart) {
+          const parsedCart = JSON.parse(storedCart);
+          if (Array.isArray(parsedCart)) {
+            this.cart = parsedCart;
+          } else {
+            console.warn("Cart data in localStorage was not an array. Initializing empty cart.");
+            this.cart = [];
+            localStorage.removeItem("cart");
+          }
+        }
+      } catch (e) {
+        console.error("Error loading cart from localStorage:", e);
+        this.cart = [];
       }
     },
-  },
-  mounted() {
-    this.loadCartFromLocalStorage();
+    async handleLogout() {
+      try {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          throw error;
+        }
+        // Clear local storage data relevant to the user/cart
+        localStorage.removeItem('cart');
+        // Reset component state
+        this.isAuthenticated = false;
+        this.user = null;
+        this.products = [];
+        this.cart = [];
+        this.productsError = null;
+        // Redirect to login or home page
+        this.$router.push('/');
+      } catch (error) {
+        console.error("Error al cerrar sesión:", error.message);
+        alert("Hubo un problema al cerrar sesión: " + error.message);
+      }
+    }
   },
 };
 </script>
 
 <style scoped>
-/* Estilos de la navbar */
+/* Your existing CSS styles from ProductosView.vue */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -157,24 +335,40 @@ export default {
 .navbar-title {
   font-size: 24px;
   font-weight: bold;
-  margin-right: auto;
+  margin-right: auto; /* Pushes the logo and buttons to the right */
 }
 
 .navbar-logo {
   width: 150px;
   height: 150px;
   border-radius: 50%;
-  margin: 0 auto;
+  margin: 0 auto; /* Centers the logo when no margin-right auto is on title */
 }
 
-.goToCartBtn {
+.navbar-buttons {
+  display: flex;
+  gap: 10px; /* Space between buttons */
+  align-items: center;
+}
+
+.goToCartBtn, .logoutBtn {
   background-color: #b069db;
   color: white;
   padding: 8px 16px;
   font-size: 16px;
-  margin-top: 10px;
-  margin-left: 10px;
-  margin-right: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.logoutBtn {
+  background-color: #dc3545; /* A distinct color for logout */
+}
+
+.logoutBtn:hover {
+  opacity: 0.8;
+  background-color: #c82333;
 }
 
 /* Estilos de tabla y otros */
@@ -182,6 +376,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+  margin-top: 20px;
 }
 
 th, td {
@@ -198,8 +393,10 @@ th {
 button {
   padding: 8px 20px;
   border: none;
+  border-radius: 5px;
   cursor: pointer;
   font-size: 14px;
+  transition: opacity 0.3s ease;
 }
 
 .addBtn {
@@ -222,6 +419,7 @@ button {
 /* Ajustes de encabezados */
 h1, h2 {
   font-size: 16px;
+  margin: 0;
 }
 
 @keyframes clickShrink {
@@ -240,30 +438,77 @@ h1, h2 {
   animation: clickShrink 0.2s ease-in-out;
 }
 
+/* Mensajes de estado */
+.info-message {
+  text-align: center;
+  margin-top: 20px;
+  color: #555;
+  font-style: italic;
+}
+
+.error-message {
+  text-align: center;
+  margin-top: 20px;
+  color: #dc3545;
+  font-weight: bold;
+  padding: 10px;
+  border: 1px solid #dc3545;
+  background-color: #f8d7da;
+  border-radius: 5px;
+}
+
+.access-denied {
+  text-align: center;
+  padding: 30px;
+  background-color: #ffe0e0;
+  border: 1px solid #dc3545;
+  border-radius: 5px;
+  color: #dc3545;
+  margin-top: 30px;
+}
+
+.access-denied button {
+  margin-top: 20px;
+}
+.secondary-button {
+    background-color: #6c757d;
+    color: white;
+}
+
 /* Media query para pantallas pequeñas (500px o menos) */
 @media (max-width: 500px) {
   .navbar {
-    flex-direction: row;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: center;
     padding: 10px;
   }
 
   .navbar-logo {
-    width: 50px;
-    height: auto;
+    width: 80px;
+    height: 80px;
+    margin-bottom: 10px;
   }
 
   .navbar-title {
     font-size: 18px;
     text-align: center;
+    margin-bottom: 10px;
   }
 
-  .goToCartBtn {
+  .navbar-buttons {
+    flex-direction: column; /* Stack buttons vertically on small screens */
+    gap: 5px;
+    width: 100%; /* Make buttons take full width */
+    margin-top: 10px;
+  }
+
+  .goToCartBtn, .logoutBtn {
     font-size: 14px;
     padding: 6px 12px;
+    margin: 0; /* Remove horizontal margin */
+    width: 100%; /* Make buttons full width */
   }
 
-  /* Ajuste de tabla en modo columna para mejor visualización */
   table, tbody, tr, th, td {
     display: block;
     width: 100%;
@@ -277,6 +522,9 @@ h1, h2 {
 
   tr {
     margin-bottom: 10px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
   }
 
   th h2, td h1 {
@@ -286,6 +534,8 @@ h1, h2 {
   .product-image {
     width: 100%;
     height: auto;
+    max-height: 200px;
+    object-fit: contain;
     margin-bottom: 10px;
   }
 
