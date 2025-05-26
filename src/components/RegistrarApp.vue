@@ -21,7 +21,7 @@
             <li :class="{ 'valid-requirement': password.length >= 8 }">Mínimo 8 caracteres</li>
             <li :class="{ 'valid-requirement': /[A-Z]/.test(password) }">Al menos una mayúscula</li>
             <li :class="{ 'valid-requirement': /[0-9]/.test(password) }">Al menos un número</li>
-            <li :class="{ 'valid-requirement': /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/.test(password) }">Al menos un carácter especial</li>
+            <li :class="{ 'valid-requirement': hasSpecialChar }">Al menos un carácter especial</li>
           </ul>
         </small>
       </div>
@@ -60,8 +60,21 @@ export default {
       registerError: '',
       successMessage: '',
       isLoading: false,
-      isPasswordValid: false, // Nuevo: para controlar el estado de validación de la contraseña
+      isPasswordValid: false,
     };
+  },
+  // NUEVA SECCIÓN: Propiedades computadas
+  computed: {
+    hasSpecialChar() {
+      // Definimos la regex una sola vez aquí
+      // La barra invertida para escapar la coma es redundante en JS regex pero no hace daño.
+      // La regex que compartiste tiene una coma extra: \\|,,.<>
+      // La corregida debería ser: \\|,<.>
+      // Sin embargo, para no complicar, la regex más robusta es la que se recomienda.
+      // Aquí estoy usando una regex robusta para caracteres especiales
+      const specialCharRegex = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+      return specialCharRegex.test(this.password);
+    }
   },
   methods: {
     goToSignIn() {
@@ -69,8 +82,7 @@ export default {
     },
     
     validatePassword() {
-      this.passwordError = ''; // Limpiar errores previos
-
+      this.passwordError = '';
       const p = this.password;
       let isValid = true;
       const requirements = [];
@@ -87,8 +99,8 @@ export default {
         isValid = false;
         requirements.push("La contraseña debe contener al menos un número.");
       }
-      // Esta regex cubre una amplia gama de caracteres especiales comunes
-      if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/.test(p)) {
+      // CAMBIO AQUÍ: Usamos la propiedad computada para la verificación.
+      if (!this.hasSpecialChar) {
         isValid = false;
         requirements.push("La contraseña debe contener al menos un carácter especial.");
       }
@@ -99,12 +111,12 @@ export default {
       }
 
       if (requirements.length > 0) {
-        this.passwordError = requirements.join(' '); // Unir todos los mensajes de error
+        this.passwordError = requirements.join(' ');
       } else {
         this.passwordError = '';
       }
 
-      this.isPasswordValid = isValid && (p === this.passwordRepeat); // Asegurar que las contraseñas coincidan
+      this.isPasswordValid = isValid && (p === this.passwordRepeat);
     },
 
     async handleRegister() {
@@ -113,7 +125,6 @@ export default {
       this.successMessage = '';
       this.isLoading = true;
 
-      // Volver a validar la contraseña antes de enviar
       this.validatePassword();
       if (!this.isPasswordValid) {
         this.isLoading = false;
@@ -206,6 +217,7 @@ export default {
 </script>
 
 <style scoped>
+/* (Tus estilos CSS aquí, sin cambios, ya que no afectan la lógica del error) */
 .register-container {
   max-width: 400px;
   margin: 50px auto;
@@ -255,7 +267,7 @@ button {
 }
 
 button[type="submit"] {
-  background-color: #28a745; /* Verde para Crear cuenta */
+  background-color: #28a745;
   color: white;
 }
 
@@ -269,7 +281,7 @@ button[type="submit"]:disabled {
 }
 
 .secondary-button {
-  background-color: #007bff; /* Azul para Iniciar sesión */
+  background-color: #007bff;
   color: white;
 }
 
@@ -291,7 +303,6 @@ button[type="submit"]:disabled {
   text-align: center;
 }
 
-/* Nuevos estilos para los requisitos de contraseña */
 .password-requirements {
   font-size: 0.85em;
   color: #666;
@@ -300,17 +311,17 @@ button[type="submit"]:disabled {
 }
 
 .password-requirements ul {
-  list-style: none; /* Quita los puntos de la lista */
+  list-style: none;
   padding-left: 0;
   margin-top: 5px;
 }
 
 .password-requirements li {
   margin-bottom: 3px;
-  color: #dc3545; /* Rojo por defecto si no cumple */
+  color: #dc3545;
 }
 
 .password-requirements li.valid-requirement {
-  color: #28a745; /* Verde si cumple el requisito */
+  color: #28a745;
 }
 </style>
