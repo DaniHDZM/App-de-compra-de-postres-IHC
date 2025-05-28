@@ -23,11 +23,6 @@
       <p class="total">Total: {{ formatPrice(totalPrice) }}</p>
     </div>
 
-    <div class="shipping-info">
-      <h4>Envío a:</h4>
-      <p>{{ selectedFacultadCampus }}</p>
-    </div>
-
     <button @click="goBackToMenu" class="back-button">Volver al Menú</button>
 
     <div class="logo-space">
@@ -42,10 +37,12 @@
 
 <script>
 import { supabase } from '@/supabase';
+
 export default {
   data() {
     return {
-      isAuthenticated: false, // New: To track authentication status
+      isAuthenticated: false,
+      user: null, // Add user data property
       cartItems: [],
       selectedFacultadCampus:
         localStorage.getItem("selectedFacultadCampus") || "No seleccionado",
@@ -63,12 +60,14 @@ export default {
     formatPrice(price) {
       return `$${price.toFixed(2)}`;
     },
-    goBackToMenu() {
+    async goBackToMenu() { // Make this method async
       this.saveOrderToHistory();
-      this.clearCart();
+      await this.clearCartFromSupabase(); // Call the new Supabase clearing method
       this.$router.push("/Productos");
     },
     loadCartFromLocalStorage() {
+      // This method can still be used for initial display if you load from local storage first
+      // But the source of truth for updates will be Supabase
       const storedCart = localStorage.getItem("cart");
       if (storedCart) {
         this.cartItems = JSON.parse(storedCart);
@@ -85,9 +84,28 @@ export default {
       orderHistory.push(newOrder);
       localStorage.setItem("orderHistory", JSON.stringify(orderHistory));
     },
-    clearCart() {
-      localStorage.removeItem("cart");
-      this.cartItems = [];
+    // New method to clear the cart from Supabase
+    async clearCartFromSupabase() {
+      if (!this.user) {
+        console.error("No user authenticated. Cannot clear cart from Supabase.");
+        return;
+      }
+      try {
+        const { error } = await supabase
+          .from('carritos') // Make sure 'carritos' is your cart table name
+          .delete()
+          .eq('user_id', this.user.id); // Delete all entries for the current user
+
+        if (error) {
+          console.error("Error clearing cart from Supabase:", error.message);
+        } else {
+          console.log("Cart cleared from Supabase successfully!");
+          this.cartItems = []; // Also clear the local component state
+          localStorage.removeItem("cart"); // Optional: clear local storage if you still use it as a cache
+        }
+      } catch (error) {
+        console.error("An unexpected error occurred while clearing cart:", error.message);
+      }
     },
     async checkAuthStatus() {
       try {
@@ -96,25 +114,74 @@ export default {
           this.isAuthenticated = false;
           return;
         }
-        this.isAuthenticated = !!session; // Sets true if session exists, false otherwise
+        this.isAuthenticated = !!session;
+        this.user = session ? session.user : null; // Set the user object
+
         if (!this.isAuthenticated) {
-          this.$router.push('/'); // Redirect to login if not authenticated
+          this.$router.push('/');
         }
       } catch (error) {
         this.isAuthenticated = false;
-        this.$router.push('/'); // Redirect on general error
+        this.$router.push('/');
       }
     },
+    // You might also want a method to load cart items from Supabase instead of local storage
+    async loadCartFromSupabase() {
+      if (!this.user) {
+        console.log("No user, cannot load cart from Supabase.");
+        return;
+      }
+      try {
+        const { data, error } = await supabase
+          .from('carritos')
+          .select('id_producto, cantidad')
+          .eq('user_id', this.user.id);
+
+        if (error) throw error;
+
+        // Assuming you also need product details like name, price, etc.
+        // You'll need to fetch these details based on id_producto
+        const productIds = data.map(item => item.id_producto);
+        if (productIds.length > 0) {
+          const { data: productDetails, error: productError } = await supabase
+            .from('productos')
+            .select('id_producto, nombre, precio, imagen')
+            .in('id_producto', productIds);
+
+          if (productError) throw productError;
+
+          this.cartItems = data.map(cartItem => {
+            const detail = productDetails.find(p => p.id_producto === cartItem.id_producto);
+            return detail ? {
+              id_producto: detail.id_producto,
+              name: detail.nombre,
+              price: detail.precio,
+              quantity: cartItem.cantidad,
+              imagen: detail.imagen // This would be the path, you'd need a signed URL as in CarritoApp
+            } : null;
+          }).filter(Boolean); // Remove nulls
+        } else {
+          this.cartItems = [];
+        }
+
+        // Update local storage as a cache if desired, but Supabase is the source of truth
+        localStorage.setItem("cart", JSON.stringify(this.cartItems));
+
+      } catch (error) {
+        console.error("Error loading cart from Supabase:", error.message);
+        this.cartItems = []; // Clear local cart if there's an error
+        localStorage.removeItem("cart"); // Clear local cache
+      }
+    }
   },
   async mounted() {
-    await this.checkAuthStatus(); // Check authentication status first
+    await this.checkAuthStatus(); // Check authentication status and get user
     if (this.isAuthenticated) {
-      this.loadCartFromLocalStorage();
+      await this.loadCartFromSupabase(); // Load cart directly from Supabase
     }
   },
 };
 </script>
-
 
 <style scoped>
 .order-confirmation {
@@ -204,7 +271,7 @@ export default {
 
 .access-denied button {
   margin-top: 20px;
-  background-color: #6c757d; /* secondary button style */
+  background-color: #6c757d;
   color: white;
   padding: 10px 20px;
   border: none;
